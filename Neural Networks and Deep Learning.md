@@ -697,3 +697,52 @@ In total, we have the following architecture:
 3. 3x12x12 max-pooling layer $\leftarrow$ Max-summary of 2x2 region of convolutional layer.
 4. 10 output neurons $\leftarrow$ Output and classifications of the neuron.
 
+
+*Small note:* one can see the convolutional and pooling layer as a single layer to some extent.
+
+#### Implementation
+
+When using the implementation in the book, we get the following results:
+
+1. Normal neural network with 100 hidden neurons, with softmax at the end results in 97.80% on ` test_data `.
+2. Convoluted neural network with single convolution-pooling layer, after which its fully connected to 100 hidden sigmoid neurons and finally 10 softmax output neurons results in 98.78% accuracy. 
+3. Adding a second convolution-pooling layer after the first one with as input the 20x12x12 neurons of the activations of the first convolution-pooling layer results in an accuracy of 99.06% accuracy.
+
+Using *tanh* instead of sigmoid neurons results in a similar result, but trains a little faster.
+
+#### Using rectified linear units
+
+**Rectified linear neurons:** Rectified linear neurons have as output 0 if the sum of the input is under the threshold (bias), otherwise it activates linearly w.r.t. the output. $f(z) \equiv \max(0, z)$
+
+4. Using the same model as 3 with two convo-pool layers, while changing the neurons from sigmoid to linear results in an accuracy of 99.23%
+5. Expanding the training data from 50 000 images to 250 000 images increases the accuracy to 99.37%.
+6. Inserting an extra fully-connected layer results in an accuracy of 99.43%.
+7. Adding dropout to the two fully-connected layers results in an accuracy of 99.60%.
+8. Using an ensemble of network increases the results to 99.67%.
+
+Why only apply dropout to fully-connected layers? In general, the convulational layerse have considerable inbuilt resistance to overfitting because of the sahred weights.
+
+#### Avoid the (vanishing/exploding) gradient problem
+
+How did we avoid the results of the gradient that either vanished or exploided? 
+We didn't, really, but we've done a few things that helps us proceed anyway:
+
+1. Using convolutional layers greatly reduces the number of parameters in those layers. 
+   $\rightarrow$ This makes the learning problem easier.
+2. Using more powerful regularization techniques (dropout + convolutional layers) to reduce overfitting.
+3. Using rectified linear units to speed up training by a factor 3-5.
+4. GPU acceleration + training for a long time.
+   This, together with (3), it's as though we've training a factor of ~30 times longer than before.
+
+Note that in addition to this, we also used other ideas such as:
+
+- Sufficiently large datasets to reduce overfitting
+- Right cost function to avoid a learning slowdown
+- Good weight initializations
+- Algorithmically expanding the training data.
+
+### Code of convolutional neural network
+
+#### Fully Connected layer
+
+Mine turtle.
