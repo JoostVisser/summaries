@@ -251,3 +251,92 @@ This is true as $n \rightarrow \infty$
 
 Pick a rule $\hat f_n = \text{argmin}_{f \in \mathcal F} \hat R_n(f)$
 
+## Lecture 3
+
+### Finding the right estimator
+
+**Goal:** find $f:\mathcal X \rightarrow \mathcal Y$, with $\hat y = f(x)$
+
+- For this, we want to find the distribution $\mathbb P_{XY}$ where $(X, Y) \sim \mathbb P_{XY}$.
+- The only ting we know about $\mathbb P_{XY}$ are the training data $D_n = \{(X_i, Y_i)\}_{i=1}^n \stackrel{iid}{\sim} \mathbb P_{XY}$
+- To do so, we have the empirical risk.
+  - Our goal is to minize this risk, thus
+    $\hat f_n = \arg \min_{f \in \mathcal F} \hat R_n(f)$, where $\tilde f$is a class of function $f:\mathcal X \rightarrow \mathcal Y$
+
+Take any $f : \mathcal X \rightarrow \mathcal Y$ fixed.
+
+$\hat R_n(f) = \frac 1 n \sum_{i=1}^n \ell(f(X_i), Y_i)$ and as the $\ell$ is i.i.d. of $\sim Z_i$ we can because of the large number note that this equals $E[\ell(f(X_1), Y_i)] = \hat R_n$
+
+Convergence: $\forall \epsilon > 0: \mathbb P(|\hat R_n - R(f)| > \epsilon) \rightarrow 0$ as $n \rightarrow \infty$. 
+
+Example
+
+- $\mathcal X = [-1, 1]$, $\mathcal Y = \mathbb R$, $\ell(y_1, y_2) = (y_1 - y_2)^2$
+- $\mathcal F = \{f:[-1, 1]\rightarrow \mathbb R: f \text{ is a polinomial of degree $d$}\}$
+- Example $d=1:$ $\arg \min \frac 1 n \sum_{i=1}^n (a + BX_i - Y_i)^2$ which stands for linear regression.
+
+However, this results in *overfitting* on the training data. However, more data results in more information, which in turn results in better fitting line.
+
+Another example shows a silly example of where the estimated empirical risk equals 0, as it is a function of the input, whereas the actual risk is 1.
+
+### Bias and Variance tradeoff
+
+We will choose $\hat f_n$ from $\mathcal F$ (e.g. $\hat f_n = \arg \min_{\text{all }f} \hat R_n(f)$) .
+
+Benchmark: $R^* = \min _{f \in \mathcal F} R(f)$
+
+$E[R(\hat f_n)]- R^* =$ expected excess risk $=E[R(\hat f_n)] - \min _{f \in \mathcal F} R(f) + \min _{f \in \mathcal F} R(f) - R^*$
+$= \underbrace{(E[R(\hat f_n)] - \min _{f \in \mathcal F} R(f))}_{\stackrel{\text{Estimation error (variance for }\ell^2\text{)}}{\text{How well I "pick"  a good model}}} + \underbrace{(\min _{f \in \mathcal F} R(f) - R^*)}_{\stackrel{\text{Approximation error (bias squared }\ell^2\text{)}}{\text{Depends only on $\mathcal F,  \mathbb P_{XY}$ }}}$
+
+The approximation error reduces the more complex $\mathcal F$ is. 
+However, the more complex $\mathcal F$ is, the higher the estimation error is.
+The expected excess risk $\mathbb E[R(\hat f_n)] - R^*$ is the one that we want to reduce as much as possible.
+
+### Solving the problem
+
+$\hat f_n = \arg \min_{f \in \mathcal F} \hat R_n(f) = \arg \min f_{f \in \mathcal F} \frac 1 n \sum_{i=1}^n \ell(f(X_i), Y_i)$
+
+So at start a complexer $f$ is good and gets us closer to the true min risk $R_n(f)$, however, too complex of an $f$, the empirical risk $\hat R_n(f)$ gets lower but the true risk $R_n(f)$ increases (*overfitting*).
+
+#### Approach 1 - Restricting functions
+
+The first approach is to restrict $\mathcal F$, this might even depend on the amount of data we observe.
+So we have $\mathcal F_1, \mathcal F_2, \ldots, \mathcal F_n, \ldots$ where $\mathcal F_1 \subseteq \mathcal F_2 \subseteq \mathcal F_3 \subseteq \ldots$, where we use a different $\mathcal F$ depending on the amount of data. This is called the **Method of Sieves**
+
+#### Approach 2 - Penalize complex models
+
+The idea is to penalize the empricial risk minimalization. 
+What we'll do is $\hat f_n = \min_{f \in \mathcal F} \hat R_n(f) + \underbrace{C(F)}_{\text{Penalty}}$.
+
+We want a penalty that is roughly the reversed of the empirical risk, so we hopefully get something that looks more like the true risk.
+
+It's a more general way of writing *approach 1*.
+
+#### Description length methods
+
+> Section 3.1.2
+
+$\hat f_n = \min_{f \in \mathcal F} n \hat R_n(f) + C(F)$
+
+Basic idea: if the fit of the data is very good, then the number of bits to describe the data is little, whereas if it doesn't fit that good , the number of bits to desribe the data is a lot. This is $C(f)$.
+
+What we're trying to do is minimize the number bits possible to describe the data, basically the simplest solution.
+
+Negative log likelihood. Negative version of the entropy.
+
+#### Hold-out methods
+
+$D_n = \{ (X_i, Y_i) \} ^n _{i=1}$, we split this into:
+
+- Training set $D_T = \{ (X_i, Y_i) \} ^n _{i=1}$ 
+- Test set $D_V = \{ (X_i, Y_i) \} ^n _{i=1}$
+
+$\hat R_m(f) = \frac 1 m \sum_{i=1}^m \ell(f(X_1), Y_i)$, define $\hat f _m^{(\lambda)} = \arg \min_{f \in \mathcal F_\lambda} \hat R_m(f)$
+
+$\hat \lambda = \arg \min_\lambda \hat R_V(\hat f _m(\lambda))$ $\leftarrow$ Expectation / bias estimator of the risk.
+Where $ \hat R_V(\hat f _m(\lambda)) = \mathbb E [ \hat R_V(\hat f _m^{(\lambda)}) | \hat f_n^{(\lambda)}] = R(\hat f_m ^{(\lambda)})$
+
+Problem: how to split the data?
+
+- We're wasting a lot of info in $D_V$.
+- Solution: **cross-validation**, idea: use different $D_T$ and $D_V$ multiple times.
