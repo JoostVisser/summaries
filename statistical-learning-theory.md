@@ -197,7 +197,7 @@ Complication:
 
 $\mathbb E [ \mathbb E [Y | X]] = \mathbb E [g(X)] = \mathbb E [\sum_{y\in \mathcal Y} y \cdot f_{y|X}(y|X) ] = \sum_{x \in \mathcal X} g(X)f_X(x) = \sum_{x \in \mathcal X} \sum_{y \in \mathcal Y} y f_{y |x} f_X(x) $
 
-$=\sum_{x \in \mathcal X} \sum_{y \in \mathcal Y} y f_{xy} (x,y) = $ after some math by putting the $y$ in front $ = \sum _{y \in \mathcal Y} y f_y(y)=E[y]$
+$=\sum_{x \in \mathcal X} \sum_{y \in \mathcal Y} y f_{xy} (x,y) = $ after some math by putting the $y$ in front $ = \sum _{y \in \mathcal Y} y f_y(y)=\mathbb E[y]$
 
 This results in the law of total probability: $\mathbb E[\mathbb E[Y|X]] = \mathbb E [Y]$
 
@@ -331,7 +331,7 @@ $D_n = \{ (X_i, Y_i) \} ^n _{i=1}$, we split this into:
 - Training set $D_T = \{ (X_i, Y_i) \} ^n _{i=1}$ 
 - Test set $D_V = \{ (X_i, Y_i) \} ^n _{i=1}$
 
-$\hat R_m(f) = \frac 1 m \sum_{i=1}^m \ell(f(X_1), Y_i)$, define $\hat f _m^{(\lambda)} = \arg \min_{f \in \mathcal F_\lambda} \hat R_m(f)$
+$\hat R_m(f) = \frac 1 m \sum_{i=1}^m \ell(f(X_1), Y_i)​$, define $\hat f _m^{(\lambda)} = \arg \min_{f \in \mathcal F_\lambda} \hat R_m(f)​$
 
 $\hat \lambda = \arg \min_\lambda \hat R_V(\hat f _m(\lambda))$ $\leftarrow$ Expectation / bias estimator of the risk.
 Where $ \hat R_V(\hat f _m(\lambda)) = \mathbb E [ \hat R_V(\hat f _m^{(\lambda)}) | \hat f_n^{(\lambda)}] = R(\hat f_m ^{(\lambda)})$
@@ -340,3 +340,4 @@ Problem: how to split the data?
 
 - We're wasting a lot of info in $D_V$.
 - Solution: **cross-validation**, idea: use different $D_T$ and $D_V$ multiple times.
+
