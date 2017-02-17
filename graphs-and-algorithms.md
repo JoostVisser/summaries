@@ -151,7 +151,7 @@ Difference with bipartite graph, we now have to deal with uneven cycles.
 
 The proof is really difficult, but we don't need to be able to do this prove ourselves, but we do have to apply it with the running time.
 
-## Lecture 3 - Probabilistic method
+## Lecture 3 & 4 - Probabilistic method
 
 Random variable: $\mathbb E[X] = \sum_i p_i n_i$.
 
@@ -238,6 +238,8 @@ Show a greedy step that always performs $\geq$ then the probabilistic step, thus
 
 ### Dominating sets
 
+#### Method 1
+
 **Dominating set:** Each vertex in $V \setminus S$ has an edge to some vertex in $S$.
 
 Show that, for a graph $G$ with $\min $ degree $d$: $\exists a : |DS| \leq (c \frac{\log d} d)n = x$
@@ -250,6 +252,49 @@ We want to calculate $\Pr[|S| \leq x \cap \text{S is a DS}]$ > 0.
 
 If we prove that $\Pr[|S| \leq x] > \frac 1 2$ and $\Pr[\text{S is not DS}] < \frac 1 2$
 
-Let $X_v = 1$
+Because one event happens with $>0.5$ and another event happens is $< 0.5$, then there must be some part where the first holds and the second does not hold. 
+
+Let $X_v = 1\{ \text{$v$ and all the neighbourhood of $v$ is outside of $S$}\}$
+
+Since a vertex has a chance of $1-p$ to be outside of $S$, so the expected value $\mathbb E[X_v] = n(1-p)^{d+1}$.
+
+We want to have that $\Pr[X\geq 1] < \frac 1 2$, so we have to use Markov's:
 
 We have to use Markov's: $\Pr[X > a] \leq \frac {E[X]} a$
+
+After some math, this results in the bound $\frac{n \log n}{d+1}$
+
+#### Method 2 - Probabilistic Method with Alterations 
+
+**Step 1:** Include each set in $S$ with probability $p$, and in $V \setminus S$ with $(1-p)$
+Let $T$ be all vertex that cause $S$ to not be a dominating set. 
+
+**Claim:** $S \cup T$ is a DS.
+
+$\mathbb E[|S \cup T|] = \mathbb E[|S|] + E[|T|] = np + E[|T|]  \leq np +  n(1-p)^{d+1}$
+
+We want to find the lowest expectation, so we want to minimize p, i.e. differentiate: $\frac \partial {\partial p} np +  n(1-p)^{d+1} = 0​$
+
+After some math, we get that this results in $\leq \frac{n \log d} d$.
+
+So sometimes it helps to not divide everything random but look at the problem in a different way.
+
+### Lovasz Local Lemma
+
+$A_1, A_2, \ldots, A_k \rightarrow$ bad events, independent and let it happen with probability $\Pr[A_i] = P$
+
+We want none of these to occur, i.e. $\Pr[\bigcap_k \bar A_k] > 0$ ($\bar A$ is that $A$ does not hold.)
+
+Then, let us define $X_i = 1${If $A_i$ occurs} and $X = \sum_i X_i$
+
+Now, we want to show that $\mathbb E[X] < 1$, where we can calculate $\mathbb \sum_iE[X_i]$ = kp < 1, so $p < \frac 1 k$.
+
+Then it holds that $\Pr[\bigcap_k \bar A_k] = (1-p)^k > 0$.
+
+
+
+Now, what if these variables $A_1$ are almost independent, so the event only depends on a small number of events. 
+We can actually draw an independent graph where an edge determines non-independence and no edge determines independence. If this graph is e.g. $4$, then an event is only determined by at most 4 other events. 
+Let this graph be of a degree of at most $d$.
+
+**Lovasz Local Lemma:** $epd < 1 \Rightarrow \Pr[\bigcap_k \bar A_k] > 0$
