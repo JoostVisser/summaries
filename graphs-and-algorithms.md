@@ -273,7 +273,7 @@ Let $T$ be all vertex that cause $S$ to not be a dominating set.
 
 $\mathbb E[|S \cup T|] = \mathbb E[|S|] + E[|T|] = np + E[|T|]  \leq np +  n(1-p)^{d+1}$
 
-We want to find the lowest expectation, so we want to minimize p, i.e. differentiate: $\frac \partial {\partial p} np +  n(1-p)^{d+1} = 0​$
+We want to find the lowest expectation, so we want to minimize p, i.e. differentiate: $\frac \partial {\partial p} np +  n(1-p)^{d+1} = 0$
 
 After some math, we get that this results in $\leq \frac{n \log d} d$.
 
@@ -298,3 +298,47 @@ We can actually draw an independent graph where an edge determines non-independe
 Let this graph be of a degree of at most $d$.
 
 **Lovasz Local Lemma:** $epd < 1 \Rightarrow \Pr[\bigcap_k \bar A_k] > 0$
+
+### This problem
+
+Suppose we have vertex $s$ and $t$ and there are $m$ possible paths from $s$ to $t$.
+Furthermore, you know that each path $P_{1 \leq i \leq m}$ intersects $r$ other paths.
+
+We want to sent $n$ packets from $s$ to $t$ such that no intersection of the paths of the packet happen. What is the maximal number of packets we can send?
+
+For each $i$, choose a random path. $X_{ij} = 1 \{\text{if } P_i \cup P_j\}$, so 1 if $i$ and $j$ have an edge in common thus it cannot hold.
+
+$\sum_{i,j} \mathbb E [X_{ij}] < 1$, where $\mathbb E[X_{ij}] = \frac{r+1} m$, resulting in the end to $n < \sqrt{\frac m r}$
+
+What if we want to solve it with the Lovasz Local Lemma?
+
+We'll take a similar $X_{ij}$, giving rise to a similar porbability of $p = \Pr[X_{ij} = 1] \leq \frac{r+1} m$
+
+We want to know when $epd < 1$, so what is $d$? In total, $X_{ij}$ depends on at most $2n-1$ events, so $d=2n$.
+(Why? Because the fact that the routes of packets 1 and 2 $X_{12}$ has an edge in common does not depend on 
+
+$\Rightarrow$ $n \leq \frac{1}{2e} \cdot \frac m r$
+
+### K-Sat
+
+$(x_1 \vee x_2) \wedge (x_5 \vee \bar x_6) \wedge \cdots \wedge  (\bar x_n \vee x_8)$ is satisfiable?
+
+2-Sat is solvable in polynomial time, whereas K-Sat isn't.
+
+Assume: 
+
+1. Every clause has $k$ variables.
+2. Each variable occurs in $\leq \frac{2^k} {100k}$ clauses. So each variable does.
+
+Say we have $m$ clauses, for every clause we make a random variable $Y_i = 1\{\text{if clause $i$ is not satisfied}\}$.
+A clause is not satisfiable if all are 0. There is only 1 possible assignment in which a clause cannot be satisfied, which results in a probability of $p = \Pr[Y_i = 1] = \frac 1 {2k}$.
+
+Two clauses depend on eachother if they share at least one varable. In total, there will be at most $k \cdot \frac{2^k}{100k}$ dependencies, so $d = \frac {2^k} {100}$.
+
+An algorithm to find this is to:
+
+1. Randomly assign all variables. 
+2. For each clause which is false, pick another random assignment.
+3. If $epd < 1$ works, then the algorithm works. 
+   In about $n$ steps, it should terminate, as the number of new clauses that can be unsatisfied is bounded.
+
