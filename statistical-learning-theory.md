@@ -341,3 +341,21 @@ Problem: how to split the data?
 - We're wasting a lot of info in $D_V$.
 - Solution: **cross-validation**, idea: use different $D_T$ and $D_V$ multiple times.
 
+
+Example of *cross-validation* will happen later in the course.
+
+## Lecture 4 
+
+### Example
+
+We observe training data $\{(x_i, y_i)\}^n_{i=1}$.
+
+Let $x_i = \frac i n$, $y_i = f^*(x) + W_i$ and $W_i$ are independent random variables with $\mathbb E[W_i] = 0$ and $\mathbb V( W_i) \leq \sigma^2$.
+Also, $f : [0,1] \rightarrow \mathbb R$. So we have some function and the actual points are differentiated with distribution $W$ from this function $f$, with $\mu_W = 0$ and $\sigma^2_W = \sigma^2$ 
+
+**Goal**: estimate function $f^*$, that is, construct $\hat f:[0,1] \rightarrow \mathbb R$, where $\hat f_n(x) \equiv \hat f_n(x, D_n)$
+Risk: $R(\hat f_n)=\mathbb E[\int_0^1(\hat f_n(x) - f^*(x))^2dx] = \mathbb E[||\hat f_n - f^*||]$
+
+In other words: $\hat R_n(f) = \frac 1 n \sum_{i=1}^n(y_i - f(x_i))^2$
+
+Assumption: $f^*$ is Lipschitz (smooth): $\forall_{s,t\in[0,1]} |f^*(s)-f^*(t)| \leq L |s-t|$ for some $L > 0$. This says that the derivative may not take a value larger than $L$, aka cannot change super fast.
