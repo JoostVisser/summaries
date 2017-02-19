@@ -88,9 +88,9 @@ Makes a deep copy of the array and its data.
 These are used for large arrays that contain mostly zeros.
 
 ```python
-from scipy import sparce
+from scipy import sparse
 eye = np.eye(5)
-spare.csr_matrix(eye)
+sparse.csr_matrix(eye)
 print("{}".format(sparse_matrix))
 ```
 
@@ -98,11 +98,181 @@ Can also create our own sparse matrix when giving the coordinates where the data
 
 #### Pandas
 
+Pandas is a Python library for data wrangling and analysis. 
+Got many nice methods to apply to tables, such as sorting and importing.
+
+##### pd.series()
+
+A one-dimensional array of data with indexed values.
+
+```python
+pd.Series([1, 3, np.nan]) # Default with row indices of numbers.
+pd.Series([1, 3, 6], index=['a', 'b', 'c']) # Different row indices.
+pd.Series({'a': 1, 'b': 2, 'c', 3:}) # Same as previous, but with a dictionary.
+# Will only save the ones with given indices.
+pd.Series({'a': 1, 'b': 2, 'c', 3:}, index=['b', 'c', 'd'])
+```
+
 ##### pd.DataFrame(data)
 
-##### Read and write to CSV
+A DataFrame is a table with both row and column index. Similar to an excel table.
+
+```python
+data = {'state': ['Ohio', 'Ohio', 'Nevada', 'Nevada'], 
+        'year': [2000, 2001, 2001, 2002],
+        'pop': [1.5, 1.7, 2.4, 2.9]}
+pd.DataFrame(data)
+```
+
+All of numpy's universal functions also work with DataFrames.
+
+###### Slicing
+
+- `df[col]` or `df.col` can be used to get the data.
+- `df.iloc[a:b, :]` for a matlab-like indices style.
+- With `df.ix[]` you can mix both locations and strings. 
+
+Example - Given a dataframe `df`:
+
+- Want the column of Sky? `df.Sky` or `df["Sky"]`
+- Want the first three rows? `df[0:3]`
+- Want to first three rows of Sky? `df.Sky[0:3]` or `df[0:3].Sky`
+- Want Sky and AirTemp? `df.[["Sky", "AirTemp"]]`
+- Similarly,  could use the direct location: ` df.iloc[:, 0:2]`
+- Want first three rows of Sky and AirTemp? `df.ix[0:3, ["Sky", "AirTemp"]]`
+
+###### df.index
+
+Retrieves an Index object with a list of the row indices.
+
+###### df.columns
+
+Retrieves an Index object with a list of the column indices.
+
+###### df.values
+
+Retrieves a 2D array with all the values in the DataFrame. 
+
+###### df.head()
+
+Returns the first 5 rows.
+
+###### df.tails()
+
+Returns the last 5 rows.
+
+###### df.describe()
+
+Quick stats about the DataFrame per column, such as the count, mean, min, standard deviation, quantiles, etc.
+
+###### df.T
+
+Transpose of the DataFrame.
+
+###### df.sort_index
+
+Sorts the index w.r.t. the lablels. (`df.sort_index(axis=1, ascending=False)`)
+
+###### df.sort
+
+Can sort by values, e.g. `df.sort(columns='b')`
+
+###### df.query
+
+Retrieve data matching a boolean expression: 
+
+```python
+df.query('A > 0.4') # Identical to df[df.A > 0.4]
+```
+
+###### Operations
+
+DataFrames offer a wide range of operations, such as max, min, mean, sum, ...
+
+```python
+df.mean() # Mean of all values per column
+```
+
+###### Custom functions
+
+Other custom functions can be applied with `apply(funct)`
+
+```python
+# All these functions are applied per column
+df.apply(np.max)
+df.apply(lambda x: x.max() - x.min())
+```
+
+###### df.groupby()
+
+Useful to aggregate data, when you have e.g. two classes then you can group them by class.
+
+```python
+df.groupby(['A','B']).sum() # Groups by the indices in A and B with the sum
+```
+
+###### df.append()
+
+Appends one DataFrame to another.
+
+```python
+df.append(s, ignore_index=True)
+```
+
+###### df.drop_duplicates()
+
+Removes all duplicates, i.e. rows that are exactly the same.
+
+```python
+df.drop_duplicates()
+```
+
+###### df.replace(a, b)
+
+Replaces all values in the DataFrame from `a` to `b`.
+
+```python
+df.replace(-1, np.nan)
+```
+
+##### pd.merge(df1, df2)
+
+Merges two DataFrames based on common keys.
+
+```python
+df1 = pd.DataFrame({'key': ['b', 'b', 'a'], 'data1': range(3)})
+df2 = pd.DataFrame({'key': ['a', 'b'], 'data2': range(2)})
+pd.merge(df1, df2)
+```
+
+##### pd.value_counts() - binning
+
+What if we have data and we want to aggregate it over bins? Then we can use `pd.cut()` and `pd.value_counts()` to cut the data into bins and count them.
+
+```python
+ages = [20, 22, 25, 27, 21, 23, 37, 31, 61, 45, 41, 32]
+bins = [18, 25, 35, 60, 100]
+cats = pd.cut(ages, bins)
+cats.labels
+pd.value_counts(cats)
+```
+
+##### Read and write to CSV or JSON
+
+Want to read or write to CSV? It's built in, hurray! \o/
+
+```python
+dfs = pd.read_csv('data.csv')
+dfs.to_csv('data.csv', index=False) # Don't export the row index
+dfs.to_json('hello.json') # No need to indicate index=False here.
+```
 
 #### Matplotlib
+
+The Matplotlib libary creates
+
+1. Figures, which are the different screens. (`fig = plt.figure()`)
+2. Axes, the axes of the figures. (`ax = plt.subplot(111)`)
 
 ##### plt.plot()
 
@@ -123,6 +293,64 @@ Very useful function to plot figures. Takes in any number of arguments.
     - 'x'   X marker
     - 's'    Square marker
 - **plot(x, y, type, x2, y2, type2):** Two plots in a single diagram.
+  You can do this for many different plots.
+
+Various args can be set of `Line2D`, such as the line width. Call `setp()` with a line as argument for a list.
+
+##### Multiple figures - plt.figure()
+
+The `figure()` is an optional command for having multiple figures. 
+
+- Function `plt.figure(n)` can be called to change focus of plots.
+- Default is `figure(1)` which is done automatically.
+
+##### Multiple subplots - plt.subplot()
+
+The `subplot()` command is useful for having multiple plots / graphs in a single figure.
+
+- Function `plt.subplot(abc)` or `plt.subplot(a, b, c)` in case either `a`, `b` or `c` $>10$.
+  - Specified as followed: `numrows`, `numcols`, `fignum` where `fignum` is the focus of the current plot. 
+- Default, called automatically, is `plt.figure(111)`.
+- Suppose we want to have a 2x2 plot with four figures in a window, then we have to call it as:
+  - `plt.subplot(221)` for the first plot, `222` for the second one and `223`  and `224` for the third + fourth respectively. 
+
+##### Labels - plt.xlabel(), plt.ylabel() and plt.title()
+
+Default labels are done via `plt.xlabel()` and `plt.ylabel()` for the $x$ and $y$ label respectively. The title can be set with `plt.title()`. Example:
+
+```python
+plt.title("Relation between cookies and time.")
+plt.ylabel("Number of cookies required")
+plt.xlabel("Time without cookies")`
+```
+
+##### plt.clf()
+
+Clears the current figure.
+
+##### plt.text() - Text in the figure
+
+With `text(x, y, text)` we can place the text anywhere in the figure. 
+
+- The $x$ and $y$ are actually the real $x$ and $y$ points of the Axes itself! 
+  If you want to use relative or percentages, then set `transform=ax.transAxes`.
+  (In this case, you need to get the correct ax; `ax=plt.subplot(...)`)
+
+> Fun fact, matplotlib has a built-in TeX expression parser! Just include your string as a raw string, such as `r'\sqrt{\frac a b}'` and you've got formulas in titles / text!
+
+##### plt.setp() - Setting properties.
+
+All the commands above return an instance, e.g. a Text instance. These can later be edited via the `setp()` command.
+
+##### plt.annotate() - Annotate something, using e.g. an arrow
+
+There are various annotations in the graph. For this, we need to know the location (`xy`) being annotated and the location of the text (`xytext`). 
+
+Syntax: `plt.annotate(text, xy=(.., ..), xytext=(.., ..))`
+
+##### plot.xscale('log') - Logarithmic axis
+
+
 
 ## Lecture 2 - Linear models 
 
@@ -420,9 +648,9 @@ Regression: Similar, but predict the mean of all values.
 **Impurity measures**
 
 - Misclassification error, leads to larger tree: $1-argmax_k \hat p_k$
-  -  
+  -  ​
 - Gini-index (probablistic predictions)
-  -  
+  -  ​
 - Entropy: How likely will random example have class $k$?
   - $E(X) = - \sum_{k=1}^K \hat p_k log_2 \hat p_k$
 - Information gain (Kullback–Leibler divergence) for choosing attribute $X_i$ to split the data.
