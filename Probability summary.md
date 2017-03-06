@@ -187,4 +187,71 @@ Warning: $\mathbb E[X^2] \neq \mathbb E[X]^2$ or $\mathbb E[\sqrt X] \neq \sqrt 
 
 Let $X$ and $Y$ be two random variables. These are said to be **independent** if, for any set $A$ and $B$, it holds that:
 
-- $P(X \in A, Y \in B) = P(X \in A) \cdot P(Y \in B)​$
+- $P(X \in A, Y \in B) = P(X \in A) \cdot P(Y \in B)$
+- Jointly independent
+
+#### Addition of random variables
+
+Given random variables $X_1, \ldots, X_n$, then it holds that:
+
+- $\mathbb E[X_1 + \cdots + X_n] =  \mathbb E[X_1] + \cdots + \mathbb E [X_n]$
+
+Furthermore, if these are jointly independent, then:
+
+- $\mathbb V [X_1 + \cdots + X_n] = \mathbb V [X_1] + \cdots + \mathbb V[X_n]$
+
+### Distributions
+
+I'm skipping this part of distributions due to time constraints.
+
+
+
+## Week 3
+
+Skipping poisson distribution.
+
+### Continuous Random Variables
+
+Let $X$ be a random continuous variable.
+
+Example, let $X$ be the temperature of the room.
+
+-  $P(X=22) = 0$, because the probability of it being exactly 22.000000 degrees is 0.
+-  $P(21 \leq X \leq 22)$ is essentially the same as computing the area under the graph.
+
+#### Probability Density Function
+
+So, it doesn't make sense to use the probability mass function for continuous variables as they cannot take exactly a specific value. Hence, Probability Density Function (p.d.f.):
+
+For a continuous random variable $X$, the p.d.f. id a function $f(x)$ such that:
+
+- $f(x) \geq 0$ for all $x \in \mathbb R$
+- $\int_{-\infty}^\infty f(x) dx = 1$
+- $\forall a < b:P(a \leq X \leq b) = \int_a^b f(x)dx$
+
+Also, we don't really have to be careful about the signs: 
+
+- $P(a \leq X \leq b) = P(a < X \leq b) = P(a \leq X < b) = P(a < X < b)$
+
+## Week 5
+
+Skipping some more distributions.
+
+### Joint probability mass function
+
+Suppose you have two random variables, $X$ and $Y$. 
+Say, $X=$ the blood pressure and $Y=$ Heart Beats per minute of a person.
+
+We know that these two are somewhat related, so just having a probability distribution of $X$ and $Y$ does not capture the relation between the two. 
+Hence we need a **joint** description of the distribution:
+
+- $f_{XY}(x, y) \geq 0 $
+  - The subscript $_{XY}$ is just there to denote which random variables we're talking about.
+- $\sum_{x \in \mathcal X} \sum_{y \in \mathcal Y} f_{XY}(x,y)=1$
+- $f_{XY}(x,y) = P(X=x, Y=y) = P(\{X=x\} \cap \{Y=y\})$
+
+#### Marginal probability mass function
+
+Let $X$ and $Y$ be two discrete random variables with joint distribution $f_{XY}(x,y)$ over $\mathcal X \times \mathcal Y$. The **marginal probability mass functions** are given by:
+
+$f_X(x) = P(X=x) = \sum_{y \in \mathcal Y} P(X=x, Y=y)

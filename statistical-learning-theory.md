@@ -251,6 +251,15 @@ This is true as $n \rightarrow \infty$
 
 Pick a rule $\hat f_n = \text{argmin}_{f \in \mathcal F} \hat R_n(f)$
 
+###  Questions
+
+1. $\mathbb E[\ell(f(X), Y)] = \mathbb P(f(X) = 1, y = 0) + \mathbb P(y = 1, f(X) = 0)$
+2. Why is it $d\mathbb P_X(x)$? Page 16.
+3. Why change it to $P(a|X=x)$ at page 16's proof.
+4. Why do they change it to the expected value with indicator functions on page 16? 
+   I.e. the step where I do my '?'
+5. ​
+
 ## Lecture 3
 
 ### Finding the right estimator
