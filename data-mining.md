@@ -463,7 +463,7 @@ How to measure this?
   - Where $r_x$ is the ratio of $x$ occurring in the set.
 - Total variance = $\sum_{x\in\mathcal X} variance(x)\cdot r_{x}$
 
-#### Classification Bias and jVariance
+#### Classification Bias and Variance
 
 General procedure:
 
@@ -740,7 +740,7 @@ RandomForests provide more reliable *feature importances*, based on many alterna
 ##### Cons
 
 1. Less interpretable and slower to train. (But parallellizable)
-2. Don't work well on high dimensional sparse data, such as test.
+2. Don't work well on high dimensional sparse data, such as text.
 
 #### Gradient Boosted Regression Trees (Gradient boosting machines)
 
@@ -788,3 +788,213 @@ Tends to use much simpler trees.
 Combine models from different algorithms by letting each algorithm predict.
 
 Can either vote over them or build a meta-classifier that trains on the predictions: **stacking**.
+
+## Lecture 5 - SVMs and Kernelization
+
+### Linear Support Vector Machines (SVM)
+
+**Support Vector Machines:** Tries to maximize the *margin*, which is the distance seperating the yperplane and the **support vectors**.
+**Support Vector:** Training samples closest to the hyperplane.
+*Intuition:* large margins generalize better, small vectors are prone to overfitting.
+
+After some math, we want to maximize $\frac 2 {||w||}$. But since this is hard, we want to minimize $\frac{||w||^2} 2$, which we can solve using quadratic function with the *Lagrangian objective function*.
+
+This contains an $a$ which is the *dual variable*, which acts like a weight for each training example.
+
+Knowing the dual coefficients $a_i$, we can find the weights $w$ for the maximal margin seperating the hyperplane: $w = \sum_{i=1}^l a_iy_ix_i$
+
+Hence, we can classify a new sample $u$ by looking at the sign of $w \cdot u + b$.
+
+The training samples for which $a_i$ is not 0 are the *support bectors*.
+
+An SVM acts similar to a weighted k-nearest neighbour as they both look at the sign of a function. In fact, an SVM is a generalization of k-nearest neighbour classifier.
+
+Hence: SVM's predict exactly the same way as k-NN, only:
+
+- They only consider the truly important datapoints ($\rightarrow$ Much faster)
+- Number of neighbours = number of support vectors
+- Distance function can be different.
+
+#### SVMs in Scikit-Learn
+
+For regression, we can use `svm.SVR` instead.
+
+The SVM library returns the following:
+
+- Support vectors.
+- DualCoef: The dual coefficients $a$, i.e. the weights of the support vector.
+- Coef, feature weights $w$, only for linear SVMs.
+
+```python
+from sklearn import svm
+clf = svm.SVC(kernel='linear')
+clf.fit(X, y)
+print("Support Vectors:")
+print(clf.support_vectors_[:])
+print("Coefficients:)
+print(clf.dual_coef_[:])
+```
+
+### SVMs for nonlinearly data
+
+If the data is nonlinearly separable, then it's impossible to find the maximum margin as there is none. Thus,  we allow for violations of the margin constrain by introducting a slack variable $\xi^{(i)}$.
+New minimize objective: $\frac{||w||^2} 2 + C(\sum_i \xi^{(i)})$
+
+- $C$ is a penalty for misclassification.
+  - Large $C$ $\rightarrow$ Large error penalties, increases bias, reduces variance, less overfitting.
+  - Small $C$ $\rightarrow$ Less strict about violations, reduces bias, increases variance, more overfitting.
+- Called *soft margin* SVM, or *large margin* SVM.
+  -  Positive slack variable $\xi^{(i)} > 0$ and margin $< 1$ are margin violaters.
+  -  $\xi^{(i)} \geq 1$, then it's misclassified.
+
+The *least squares* SVM is a variant that does L2 regularization.
+
+- Many more support vectors.
+- Only available in scikit-learn as `LinearSVCclassifier(loss='squared_hing')`.
+
+#### Hinge loss
+
+We are trying to:
+
+- Maximize the margin
+- Minimize the sum of margin violations
+
+However, why don't we focus on minimizing the sum of misclassifications instead? if points are on the right side of the margin, that more important 
+
+Best convex relation is hinge loss: $L(y) = \max{0 ,1-y}$
+
+This can be done with `SGDClassifier(loss='hinge')`, then it'll act like an SVM. 
+However, the Modified Huber loss generally performs better in this scenario.
+
+### Kernelized Support Vector Machines
+
+Linear models works well in high dimensional spaces
+
+- **Idea:** create new dimensions to help our SVM.
+- Then our linear classifier can become some sort of an ellipse classifier in lower dimensions.
+
+#### Kernel
+
+A kernel is a similarity function between two points:
+
+$k: X \times X \rightarrow \mathbb R$
+
+- This kernel is **symmetric**, aka $k(x_1, x_2) = k(x_2, x_1)$
+- The kernel Gram matrix is positive semi-definite.
+
+Kernel matrix $K \in \mathbb R^{n \times n}$ with $k_{ij} = k(x_i, x_j)$
+
+**Hilbert space:** Possibily infinite space, denoted by $\mathcal H$.
+
+Mercer's Theorem states that there exists a hilbert space and a continuous feature map $\phi$ such that the kernel computes the inner product of the features $k(x_1, x_2) = \langle\phi(x_1), \phi(x_2)\rangle$
+
+There are several kernels to choose from:
+
+- **Linear kernel:** Standard inner product. ($k(x_1, x_2)=x_1^Tx_2$)
+- **Polynomial kernel:** $k(x_1, x_2)=(x_1^Tx_2 + b)^d$ 
+  - $d$ is the degree
+- **Gaussian kernel:** Uses a gaussian / normal distribution, with regularization parameter $\gamma$.
+  - $k(x_1, x_2) = e^{-\gamma||x_1-x_2||^2}$
+
+#### Why kernels?
+
+Mathematical trick of using kernels:
+
+1. Addings nonlinear features can make linear models much more powerful.
+2. Adding many features makes computation very expensive and we don't know which features to pick.
+3. Using the *kernel trick*, we can directly compute distances in high dimensional space.
+4. A *kernel* is a distance function with special properties that makes this trick possible.
+
+Intuition:
+
+## Lecture 6 - Bayesian Learning
+
+### Naive bayes
+
+#### Naive bayes as classifier using Bayes' rule
+
+**Naive Bayes:** Predict the probability that a point belongs to each class using Bayes' Theorem.
+*Assumption:* Assumes that the features are independent from each other.
+
+Main advantage: very fast.
+
+**Bayes' rule**: $P(C|X) = \frac{P(X|C)P(C)}{P(X)}$
+
+Let's break this down, shall we:
+
+- $\mathbb P(C | X)$: The probability that $C$ (the class) happens given $X$ (the features).
+  Also called the *prosterior probability*.
+- $\mathbb P(X|C)$: The probability that $X$ happens given the class $C$.
+  Also called the *likelihood*.
+  - In other words, given the probabilities of this class, what is the probability that these set of features happen? This looks at the other points that are already classified as in class $C$ in the learning set.
+  - Since we assume independence of features $X_1, X_2, \ldots, X_n$, this is equal to:
+    $\mathbb P(X_1 | C) + \mathbb P(X_2 | C) + \ldots + \mathbb P(X_n | C)$.
+- $\mathbb P(C)$: The probability that this class $C$ in general happens, in the learning set.
+  Called the *prior*.
+- $\mathbb P(X)$: The probability that these features in general happen. Again, due to independence, this is equal to: $P(X_1) + P(X_2) + \ldots  + P(X_n)$. These are again extracted from the learning set.
+  Called *evidence* or *marginal likelihood*.
+
+#### Gaussian Naive Bayes
+
+What about numeric data? Then we'll use **Gaussian Naive Bayes (GaussianNB)**:
+
+1. Compute mean $\mu_C$ and standard deviation $\sigma_C$ of the feature values ($X$) per class ($C$).
+2. Fit a Gaussian distribution around the mean of the feature values ($X$) per class ($C$).
+3. Predict using Bayes' theorem by computing the joint probability, given all features $X$.
+4. $z$-score distance of $X$ from class $A$ is $\frac{X-\mu_A}{\sigma_A}$, while from class $B$ it's $\frac{X-\mu_B}{\sigma_B}.
+
+#### Other Naive Bayes classifiers
+
+- BernoulliNB
+  - Assumes binary data.
+  - Features: # of non-zero entries per class ($\ell = \mathbf 1 \{\hat y \neq y\})$
+- MultinomialNB
+  - Assumes count data
+  - Feature statistic: Average value per class.
+
+Both are mostly used for text classification (bag-of-words) data.
+
+### Probabilistic interpretation of regression - Gaussian Processes
+
+This is for the classifier **Gaussian Processes Classifier**, which is different from *GaussianNB*.
+
+**Gaussian Processes (GP)** are a generic supervised learning method designed to solve *regression* and *probabilistic classification* problems.
+
+Gaussian process is similar to the process of trying to fit a linear or polynomial line through the data, but then the probabilities of possible base functions are *learned based on new data*.
+
+- However, this uses new data to fit, so when there are more observations than unknowns, we cannot fit this line.
+- Solution: introduce slack variable $\epsilon_i$ as noise.
+- For each observation, add this slack variable to the classifier. For a linear classifier, this becomes:
+  - $Y_i = mX_i + c + \epsilon_i$
+  - Often assumes Gaussian noise: $\epsilon_i \sim \mathbb N(0, \sigma^2)$
+- Results in $n$ extra variables to be estimated together with the original $m$ and $c$
+
+Furthermore, we assume a prior distribution for the parameters $\vec w \sim \mathbb N (0, \alpha I)$.
+
+#### Gaussian process model parameters
+
+Given the previous explanation, these are the parameters that can be tweaked with:
+
+- Parameters of the *prior* (`alpha`) [Prior variance]
+- Parameters of the basis functions (`degree`) [The order of the polynomial basis set]
+- Noise level (`sigma2`) [Noise variance]
+- TODO
+
+### Gaussian Processes with Scikit-Learn
+
+We can use the `GaussianProcessRegressor` for this purpose.
+
+Hyperparameters:
+
+- `kernel`: Kernel specifying the *covariance function* of the Gaussian Process.
+  - Default: 1.0*RBF(1.0). $\leftarrow$ Typically leave default, as this will be optimized during training.
+- `alpha`: Regularization parameter. 
+  (Tikhonov regularization of the assumed covariance between the training points.)
+  - Adds a small value to the diagonal of the kernel during fitting.
+  - Larger values results in increased noise level and reduces normerical issues during fitting.
+- `n_restarts_optimizer`: Number of restarts of the optimizer.
+  - Default: 0. $\leftarrow$ Best to change this number, as it's useful to do at least a few optimizations.
+  - Optimizer finds the kernel's parameter which maximizes the log-marginal likelihood.
+
+Want to retrieve the predictions and confidence intervals after fitting? 
+Then just call `y_pred, sigma = gp.predict(X, return_std=True)`.
