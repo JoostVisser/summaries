@@ -64,7 +64,7 @@ Given a graph with max $d(v)=p$.
 
 The maximum independent set then has at least $I = \frac n {p+1}$ vertices. 
 
-Finding the maximum indepentent set is NP-hard, and an algorithm exists of $O(n^2 2^n)$ to find it.
+Finding the maximum independent set is NP-hard, and an algorithm exists of $O(n^2 2^n)$ to find it.
 
 #### Vertex Cover
 
