@@ -342,3 +342,121 @@ An algorithm to find this is to:
 3. If $epd < 1$ works, then the algorithm works. 
    In about $n$ steps, it should terminate, as the number of new clauses that can be unsatisfied is bounded.
 
+
+
+
+
+
+## Answers exam
+
+### Question 1
+
+**Question a:** If there is a perfect matching, then Bob wins. 
+
+Whatever vertex Alice picks, just pick the vertex that is matched with that vertex in the perfect matching.
+
+**Question b:** ...
+
+There exists an unmatched vertex. Alice starts by picking the unmatched vertex, then Alice just starts picking the vertex which is unmatched and keeps picking the vertex that matches in the perfect matching.
+
+However, if Bob wins, then there is an augmented path in the graph, thus there should exist a perfect matching.
+
+### Question 2
+
+#### Question A
+
+- 2-regular
+- Number of conn subgraph of size $r \leq nd^{2r}$
+
+Pick first vertex: $n$ different possibilities. Then for the second vertex you only have $d$ choices.
+
+Then you go back. You're making a cycle on the spanning tree. At most $2r$ edges.
+
+Number of connected subgraphs of size $r$ $\leq $ Number of different spanning trees of size $r$ $\leq$ Number of distinct settings.
+
+#### **Question B**
+
+$\mathbb E[ \text{Number of conn subgraph of size} > \log n]$
+
+Trick, take $r=1+\log n$ instead of $r = \log n$.
+
+## Lecture 9 - Randomized Algorithms
+
+**Incremental Construction:** Suppose input is $Obj_1,Obj_2, \ldots, Obj_n$. Need to computer with these objects.
+For the first $i$ objects we compute a partial answer, then we include the next $Obj_{i+1}$. Sort of induction-type.
+
+*Idea:* randomly order the objects $Obj_1, Ojb_2, \ldots, Obj_n$.
+
+#### Problem 1 - Sorting
+
+Given: numbers $S_1, \ldots, S_n$ which you need to sort in increasing order.
+First we include $S_1$, then I put all numbers smaller than $S_1$ left of $S_1$ and the numbers higher right of $S_1$.
+We do the same thing with $S_2$. No numbers can go right of $S_1$ if $S_2 \leq S_1$.
+
+**Running time:** The first step takes $n-1$, since we need to calculate all numbers different from $S_1$. 
+The time it takes for the second step depends on the numbers $S \in left(S_1)$. It takes $O(left(S_1))$ time.
+Worst case: $(n-1) + (n-2) + \ldots + 1 = O(n^2)$. Only happens if $S_1 \leq S_2 \leq \ldots \leq S_n$ or vice versa.
+
+However, what if we randomly permute the numbers?
+Since everything should be equal spaced, the number of numbers between $S_{i-1}$ and $S_i$ is $\frac n {i+1}$.
+
+$$\sum_i \frac{n-i}{i+1} \leq \sum_i \frac n {i+1}=n(1+\frac 1 2 + \frac 1 3 + \cdots + \frac 1 n) = O(n\log n)$$
+
+Now we want to know the running time if we insert number $S_{i+1}$ given that numbers $S_1 \ldots S_i$ are already somewhere in the list, sorted.
+
+$$\mathbb E[\text{running time when inserting $S_{i+1}$}] = \sum_{k=1}^{i+1} \frac{|I_k|}{n-i} \cdot |I_k| = O(n^2)$$, since $$\sum_k I_k = n-i$$. 
+
+The probability that $S_{i+1}$ belongs to a specific place is $\frac{\text{Size of the interval}}{n-i}$. 
+This naive method does not really work, so to speak.
+
+When you look at a randomized algorithm, you always look at the *Expected running* time.
+
+##### New Idea
+
+Going back. Suppose we pick $S_{i+1}$, then the running time is the number of elements in $S_i$ and $S_{i-1}$. But what if you go backwards? Just pick any random number in $1 \leq p \leq i+1$ and we can go back in a similar running time.
+
+What is the running time? Suppose we remove $S_{i+1}$, which is between numbers $S_i$ and $S_{i-1}$. This equals the number of elements between the interval $(S_i, S_{i+1})$ plus $|I_{K+1}| = $ number of intervals in $(S_i, S_{i-1})$.
+
+$$\mathbb E[\text{running time}] = \sum_K \frac {I_K + I_{K+1}} {i+1} \leq 2 \sum_K \frac {I_K}{i+1} =2 \left(\frac {n-1}{i+1}\right) \approx 2 \frac n i$$
+
+This is called **backwards analysis**.
+
+### Problem 2 - Convex hull
+
+Try to make the smallest set possible such that when you connect them, all the points lies in this hull.
+
+We follow the same framework:
+
+1. Randomly order the points.
+2. Incremental construction
+
+Assume we already inserted the first $i$ points $P_1, \ldots, P_i$. These are all points on the boundary + the points inside the convex hull $C_i$. Consider a origin point $P_o$ in the convex hull and connect them to all points outside of the convex hull. Then look at the edges where they intersect with the convex hull. These edges are kind of an obstacle.
+
+Now we insert in $P_{i+1}$. It's possible that it lies inside or outside. How to check this?
+There exists an edge between $(P_{i+1}, P_o)$. Compute the point where it intersects another edge, when considering the half-line starting in $P_o$ through $P_{i+1}$. Check if $P_{i+1}$ is within the boundary of the intersection or outside. This can be done in $O(1)$ time. 
+
+Inside? $\rightarrow$ $C_{i+1} = C_i$. Takes $O(1)$ time.
+
+Outside? $\rightarrow$ Consider a point $P_k$ within the $i$ points $P_1, \ldots, P_{i}$. We know that $P_k$ is part of the convex hull boundary if the hull of $(P_{k-1}, P_{i+1})$ and $(P_{i+1}, P_{k+1})$ is within the convex hull.
+
+Quicker to look at the angle ($\leq180^o$) or check for a left turn or a right turn. It's best to first consider the points where the half-line of the origin intersected the convex hull.
+
+What is the running time of this? This depends on the number of points we remove. Time = $O(\text{# deleted})$.
+However, we also need to update the edges with the edge w.r.t. the origin. For every other point we might have to change the halfline to the origin. So in total, this takes $O(\text{# of deleted + # of updated info})$.
+
+Total running time $$= \underbrace{\sum_{i=i}^n \text{# deleted at step $i$}}_{\leq n} + \sum_{i=1}^n \text{# updated at step $i$}$$. 
+
+So we only need to worry about the second term. Now we want to compute at every step how many vertices we have to update. These are exactly the number of vertices of which the edge intersected the edges we removed from the convex hull. In the worst case, we have to remove $n-i$ points, as all points are behind (one of) the removed edge(s). 
+Thus, $\text{# of updated points at step $i$} \leq n-1$. This results in an $O(n^2)$ algorithm, but we can go faster!
+
+What if we randomly order the points? Going backwards, we are just going to pick a random point of the $i+1$ points (not only from the hull!).
+
+Now, if we remove a random point and again compute the convex hull. All the points 
+
+If we pick $P_{i+1}$, our running time is $\text{# of points whose edge intersects the edges of $P_{i+1}$}$. Suppose the convex hull has $l$ edges and $e_l$ is the number of points that intersect that edge.
+
+The probability that we pick $P_{i+1} = \frac 1 {i+1}$. Then we have to update the number of vertices whose edge intersects the two edges of $P_{i+1}$. (If $P_{i+1}$ is on the convex hull.) This equals to $e_l + e_{l+1}$. 
+
+$$\mathbb E [\text{# of updated at step $i$}] = \sum_{k=1}^{i+1} \frac{e_l+e_{l+1}}{i+1} \leq 2 \frac{|C_{i+1}|}{ i+1} \leq \frac{2n}{i+1} = O(n \log n)$$.
+
+**Note:** Random sampling will *not* be on the exam.
