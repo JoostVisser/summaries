@@ -343,10 +343,6 @@ An algorithm to find this is to:
    In about $n$ steps, it should terminate, as the number of new clauses that can be unsatisfied is bounded.
 
 
-
-
-
-
 ## Answers exam
 
 ### Question 1
@@ -374,7 +370,7 @@ Then you go back. You're making a cycle on the spanning tree. At most $2r$ edges
 
 Number of connected subgraphs of size $r$ $\leq $ Number of different spanning trees of size $r$ $\leq$ Number of distinct settings.
 
-#### **Question B**
+#### Question B
 
 $\mathbb E[ \text{Number of conn subgraph of size} > \log n]$
 
@@ -393,7 +389,7 @@ Given: numbers $S_1, \ldots, S_n$ which you need to sort in increasing order.
 First we include $S_1$, then I put all numbers smaller than $S_1$ left of $S_1$ and the numbers higher right of $S_1$.
 We do the same thing with $S_2$. No numbers can go right of $S_1$ if $S_2 \leq S_1$.
 
-**Running time:** The first step takes $n-1$, since we need to calculate all numbers different from $S_1$. 
+The first step takes $n-1$, since we need to calculate all numbers different from $S_1$. 
 The time it takes for the second step depends on the numbers $S \in left(S_1)$. It takes $O(left(S_1))$ time.
 Worst case: $(n-1) + (n-2) + \ldots + 1 = O(n^2)$. Only happens if $S_1 \leq S_2 \leq \ldots \leq S_n$ or vice versa.
 
@@ -460,3 +456,84 @@ The probability that we pick $P_{i+1} = \frac 1 {i+1}$. Then we have to update t
 $$\mathbb E [\text{# of updated at step $i$}] = \sum_{k=1}^{i+1} \frac{e_l+e_{l+1}}{i+1} \leq 2 \frac{|C_{i+1}|}{ i+1} \leq \frac{2n}{i+1} = O(n \log n)$$.
 
 **Note:** Random sampling will *not* be on the exam.
+
+## Lecture 10 - Random sampling - Min-cut
+
+### Min-cut
+
+**Min-cut:** Split the vertices in two parts $S$ and $V \setminus S$ such that the number of edges is as little as possible.
+
+**Karger** (random sampling solution): 
+
+#### Probability of min-cut for single specific min-cut
+
+Idea: imagine $S$ is big, $S \setminus V$ is big and the edges between them is small. When we contract an edge, it is most likely that it is likely that it's either $(1 - \frac 2 n)(1 - \frac 2 {n-1}) \cdots (1 - \frac 2 3) = \frac 2 {n(n-1)}$ in $S$ or in $V \setminus S$.
+
+1. Pick a random edge $e$. Contract it. (I.e. $(u, v)$ becomes a new vertex $w$.)
+   This can result in more than 1 edge between vertices.
+   Repeat until two vertices are left.
+   Possibly more than 1 edge can be removed if two vertices have 2+ edges between them.
+2. Now we have two vertices between which there are 0+ edges.
+   Let $S$ be one side of the cut and $V \setminus S$ be the other side of the cut.
+
+For $i=1, 2, \cdots, n-1$ contract a random edge $e_i$. Let $k$ be the number of edges in the min-cut en $m$ be the total number of edges. 
+Note that $d(v) \geq k$ for all vertices $v$. (Because otherwise we could select $v$ as $S \setminus V$.
+Also note that $\sum d(v) = 2m \Rightarrow nk \leq 2m$ 
+And note that $m \geq \frac {nk} 2$
+
+$e_1:\Pr[\text{We contract an edge not in the min cut}] = 1 - \frac k m \geq 1 - \frac{2k} {nk} = 1 - \frac 2 n$
+Suppose we contract an edge in the min cut. 
+​    Then we have that mincut $\geq k$.
+​    Else it stays the same. 
+However, we can delete more than 1 edges, so we cannot state $e_2: 1-\frac k {m-1}$
+
+$e_2: \Pr[\text{We contract an edge not in the min cut}] = 1 - \frac{2}{n-2}$ after some proving with a $2m_1 \geq k(n-1)$.
+
+Assume we only contracted edges from $S$ or $V \setminus S$.
+
+$e_i : \Pr[\text{We contract an edge not in the min cut}]: 1 - \frac k {m_i} = 1 - \frac 2 {n-i+1} $
+
+What is the probability that we have not contracted an edge in the min cut every time?
+
+$$(1 - \frac 2 n)(1 - \frac 2 {n-1}) \cdots (1 - \frac 2 3) = \frac 2 {n(n-1)} \geq \frac 2 {n^2}$$ (after writing them down and cancelling many terms)
+
+This is only for *one* min-cut.
+
+#### Probability of min-cut for single specific min-cut
+
+How many of these mincuts do we have? Most stupid upper bound is $2^n$, but because of the probability we can't have more than $\frac {n^2} 2$ mincuts. Thus, any graphs $G$ on $n$ vertices can has $\mathcal O(n^2)$ mincuts.
+
+Each contraction might take up to $n$ timesteps because we have to update all the neighbours. There are $n-2$ contractions. Thus, running time of the algorithm is $\mathcal O(n^2)$.
+
+Well, we just repeat this $n^2$ times where our total expected running time is $n^4$.
+
+#### Let's make it faster!
+
+If we can find a better way where the probability is a bit higher, then we can improve the running time of the algorithm.
+
+So in the end, we're actually having pretty big probability terms. So the probability that we contract an edge that is not in $k​$ is quite small.
+
+Idea: start with graph $G$ of size $n$. Contract until we have $t$ vertices. 
+$\Pr[S\text{ survives}] \geq (1-\frac 2 {n-1}) (1-\frac 2 n) \cdots (1-\frac 2 t) = \frac{(t-1)(t-2)} {n(n-1)} \approx \frac{t^2}{n^2}$
+
+Once we're down at $t$, we'll use a $t^4$ algorithm. 
+This results in an expected running time of $[n(n-t) + t^4] \cdot \frac{n^2}{t^2} \leq \frac{n^4}{t^2} + n^2t^2$. This is smallest for $t=\sqrt n$, then we get a running time of $n^3$.
+
+#### Let's make it even faster!
+
+Remember that $\mathbb P(n) = 1 - [1 - \frac {t^2}{n^2} \mathbb P(t)] ^{\frac{n^2}{t^2}}$, where the latter part is the probability of fail in one of the $\frac{n^2}{t^2}$ runs. 
+
+What if we do this splitting again and again and again, instead of just once.
+Let us take first part at $\frac 1 2 n$. 
+The probability it survives is $\frac{t^2}{n^2} = \frac 1 4$, and we do this 4 times. 
+
+For the $\frac 2 {2^i}$, we do this $4^{i+1}$ times.
+
+Expected running time: 
+
+$$\sum_{i=1}^{\log n} \frac n {2^{i+1}} \cdot \frac {n}{2^i} 4^{i+1} = 2n^2 \log n$$
+
+$\mathbb P(n) = 1-(\Pr[\text{Fail in one of 4 steps}])^4$
+$\mathbb P(n) = 1-(1-\frac 1 4 \mathbb P(\frac n 2))$
+
+$\mathbb P(n) \sim \frac 1 {\log n}$. So with at least $\frac 1 {\log n}$ probability we can get a min cut.
