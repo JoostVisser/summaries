@@ -2,6 +2,12 @@
 
 [TOC]
 
+$$
+\text{LaTeX definitions}
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
+$$
+
 ## Lecture 1 - ML concepts, scikit-learn and kNN
 
 ### Assignments
@@ -998,3 +1004,108 @@ Hyperparameters:
 
 Want to retrieve the predictions and confidence intervals after fitting? 
 Then just call `y_pred, sigma = gp.predict(X, return_std=True)`.
+
+## Lecture 8 - Principal Component Analysis (PCA)
+
+Why do we want to reduce the dimension of the data?
+
+1. Some algorithms have **running time** exponential in the dimension.
+2. We want to visualize **inherent structure** in the data.
+
+**Principal Component Analysis:** Sequence of *best linear approximations* to a data set.
+
+Given a data set of $d$-dimensional points: $P = \{p_1, \ldots, p_n\}$. 
+We want to represent $P$ using a $k$-dimensional linear model:
+
+$$
+f(\lambda) = \mu + \mathbf V \lambda
+$$
+
+- $\mu$ is the location vector in $\mathbb R^d$.
+- $\mathbf V$ is a $d \times k$ orthonormal matrix.
+- $\lambda$ is a $k$-vector of *parameters*.
+
+> **Example**
+>
+> Suppose we want to project 3D points in 2D, then we have that:
+>
+> - $\mu + \mathbf V \lambda$ represents a plane in 2D, where $v_1$ and $v_2$ are k-vectors that indicate this plane, the so called **principal components**. These have parameters of $\lambda_1$ and $\lambda_2$.
+> - $f(\lambda^{(i)})$ is point $p_i$ on the new 2D-plane
+
+**Goal:** find the hyperplane which minimizes the sum of squared distances.
+
+$$
+\min_{\mu, \mathbf V_k, \lambda} \sum_{1 \leq i \leq n} ||p_i - f(\lambda^{(i)})||^2
+$$
+When we try to optimize for $\mu$ and $\lambda^{(i)}$, we get the following formulas:
+
+- $$\mu = \frac 1 n \sum_{1 \leq i \leq n} p_i \Longleftarrow$$ We can assume that $\mu$ is the mean of the data. 
+- $$\lambda^{(i)} = \mathbf V^T (p_i - \mu) \Longleftarrow$$ We use the projection onto $\mathbf V$ to calculate $\lambda$.
+
+
+
+
+## Lecture 11 - Clustering Algorithms
+
+### Clustering
+
+**Clustering:** Grouping similar objects into clusters.
+
+- What is the right clustering? Pretty difficult with errors and unusual things (*noise*).
+
+Because clustering is ill-defined, we will focus on the *facility location* problem.
+**Facility location:** Where do you place two hospitals to minimize the maximal distances from any village to its serving hospitals. Also called $k$-center clustering.
+
+-----
+
+**Input:** set of points $P=\{p_1, \ldots, p_n\} \subseteq \mathbb R^d$, value $k$
+**Output:** set of centers $c=\{c_1, \ldots, c_k\}$
+
+- Each $p_i \in P$ is "served by" its closest center.
+
+$$
+\argmin_{c_j \in C} \lVert p_i - c_j \rVert
+$$
+
+- We want to choose $\{c_1, \ldots, c_k\}$ to minimize the cost function $\phi$:
+
+- $$
+  \phi(P, C) = \max_{p_1 \in P} \left\lVert p_i - \argmin_{c_j \in C} \lVert p_i - c_j \rVert \right\rVert
+  $$
+
+
+----
+
+#### Gonzales's algorithm
+
+Gonzales' algorithm for $k$-center: 
+
+1. choose an arbitrary point $p_i \in P$ and set $c_i = p_i$.
+2. For $t=2, \ldots, k$, pick $c_t$ as the maximum cost function:
+
+$$
+c_t = \argmax_{p_i \in P} \phi(P, \{c_1, \ldots, c_{t-1}\})
+$$
+
+"Farthest-first" greedy algorithm: always choose the point that maximizes the current cost $\phi(P, \{c_1, \ldots, c_l\})$. You stop the process when you hit $k$.
+
+This is a **2-approximation** algorithm for this problem.
+
+#### Lloyd's algorithm (k-means clustering)
+
+Variation of the problem:
+
+- Minimize the squared average distance.
+- Hospitals / clustering points may lie everywhere.
+
+New cost function to minimize:
+$$
+\phi(P, C) = \sum_{p_i \in P} \left\lVert p_i - \argmin_{c_j \in C} \lVert p_i - c_j \rVert \right\rVert
+$$
+**Lloyd's algorithm:**
+
+1. Choose initial centers arbitrarily $\{c_1, \ldots, c_k\} \in P$
+2. Assign each point to the clusters. 
+3. Update the clusters by taking the mean of all the points.
+4. Go to 2. and repeat until the value doesn't change anymore.
+
