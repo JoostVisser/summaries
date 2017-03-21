@@ -29,7 +29,7 @@ What would happen if we could automatically tune the weights depending on the mi
 ### Sigmoid neurons
 
 Idea: when we make a small change in the *weights*, we want to have a small change in the *output* so that we'll come closer to the requirements for our output.
-​:arrow_right_hook: Not possible with perceptrons, as a small change can flip the output from e.g. 0 to 1.
+$\Rightarrow$ Not possible with perceptrons, as a small change can flip the output from e.g. 0 to 1.
 
 **Sigmoid neuron (logistic neurons):** A neuron that outputs using a sigmoid function.
 
@@ -421,7 +421,7 @@ There are a large number of parameters to choose from. How can we choose these p
 **Early stopping to determine number of training epochs:**
 
 - At the end of each epoch, compute the classification accuracy on the validation data.
-  ​:arrow_right_hook: Stops improving over some time? $\rightarrow$ Terminate
+  $\Rightarrow$ Stops improving over some time? $\rightarrow$ Terminate
   - Can use no-improvement-in-ten rule.
   - What if the networks plateaus for a while, after which it starts improving again?
     - Can change it into no-improvement-in-twenty or something.

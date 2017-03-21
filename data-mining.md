@@ -6,6 +6,7 @@ $$
 \text{LaTeX definitions}
 \DeclareMathOperator*{\argmin}{\arg\!\min}
 \DeclareMathOperator*{\argmax}{\arg\!\max}
+\newcommand{\V}{\mathbf V}
 $$
 
 ## Lecture 1 - ML concepts, scikit-learn and kNN
@@ -1007,6 +1008,8 @@ Then just call `y_pred, sigma = gp.predict(X, return_std=True)`.
 
 ## Lecture 8 - Principal Component Analysis (PCA)
 
+### Dimensionality reduction
+
 Why do we want to reduce the dimension of the data?
 
 1. Some algorithms have **running time** exponential in the dimension.
@@ -1037,11 +1040,18 @@ $$
 $$
 \min_{\mu, \mathbf V_k, \lambda} \sum_{1 \leq i \leq n} ||p_i - f(\lambda^{(i)})||^2
 $$
+
 When we try to optimize for $\mu$ and $\lambda^{(i)}$, we get the following formulas:
 
 - $$\mu = \frac 1 n \sum_{1 \leq i \leq n} p_i \Longleftarrow$$ We can assume that $\mu$ is the mean of the data. 
 - $$\lambda^{(i)} = \mathbf V^T (p_i - \mu) \Longleftarrow$$ We use the projection onto $\mathbf V$ to calculate $\lambda$.
 
+
+#### Calculating the orthonormal matrix
+
+How do we calculate our orthonormal matrix $\mathbf V$ in the formula $f(\lambda) = \mu + \V \lambda$? 
+
+Let $\mathbf A$ be a $n \times d$ matrix with row vectors $a_i$ with $a_i = (p_i - \mu)^T$. Here, $\mathbf A$ is a centered version of $P$.
 
 
 
@@ -1072,6 +1082,7 @@ $$
 - $$
   \phi(P, C) = \max_{p_1 \in P} \left\lVert p_i - \argmin_{c_j \in C} \lVert p_i - c_j \rVert \right\rVert
   $$
+
 
 
 ----
