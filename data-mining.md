@@ -948,7 +948,7 @@ What about numeric data? Then we'll use **Gaussian Naive Bayes (GaussianNB)**:
 1. Compute mean $\mu_C$ and standard deviation $\sigma_C$ of the feature values ($X$) per class ($C$).
 2. Fit a Gaussian distribution around the mean of the feature values ($X$) per class ($C$).
 3. Predict using Bayes' theorem by computing the joint probability, given all features $X$.
-4. $z$-score distance of $X$ from class $A$ is $\frac{X-\mu_A}{\sigma_A}$, while from class $B$ it's $\frac{X-\mu_B}{\sigma_B}.
+4. $z$-score distance of $X$ from class $A$ is $\frac{X-\mu_A}{\sigma_A}$, while from class $B$ it's $\frac{X-\mu_B}{\sigma_B}$.
 
 #### Other Naive Bayes classifiers
 
@@ -1028,6 +1028,8 @@ $$
 - $\mathbf V$ is a $d \times k$ orthonormal matrix.
 - $\lambda$ is a $k$-vector of *parameters*.
 
+In linear algebra, two vectors are **orthonormal** if they are *orthogonal* $\perp$ and *unit vectors*. 
+
 > **Example**
 >
 > Suppose we want to project 3D points in 2D, then we have that:
@@ -1043,17 +1045,30 @@ $$
 
 When we try to optimize for $\mu$ and $\lambda^{(i)}$, we get the following formulas:
 
-- $$\mu = \frac 1 n \sum_{1 \leq i \leq n} p_i \Longleftarrow$$ We can assume that $\mu$ is the mean of the data. 
+- $$\mu = \frac 1 n \sum_{1 \leq i \leq n} p_i \Longleftarrow​$$ We can assume that $\mu​$ is the mean of the data. 
 - $$\lambda^{(i)} = \mathbf V^T (p_i - \mu) \Longleftarrow$$ We use the projection onto $\mathbf V$ to calculate $\lambda$.
 
 
 #### Calculating the orthonormal matrix
 
-How do we calculate our orthonormal matrix $\mathbf V$ in the formula $f(\lambda) = \mu + \V \lambda$? 
+How do we calculate our orthonormal matrix $\mathbf V$ in the formula $f(\lambda) = \mu + \V \lambda$? So, our goal is to find the orthonormal matrix (i.e. the vectors of our new dimensions) to minimize the sum of squared distances.
 
-Let $\mathbf A$ be a $n \times d$ matrix with row vectors $a_i$ with $a_i = (p_i - \mu)^T$. Here, $\mathbf A$ is a centered version of $P$.
+Let $\mathbf A$ be a $n \times d$ matrix with row vectors $a_i$ with $a_i = (p_i - \mu)^T$.
+Basically, $\mathbf A$ is a centered version of $P$, so the mean is on $0$.
 
+The next part I don't really understand, so I'm skipping this part.
 
+#### Singular Value Decomposition (SVD)
+
+SVD is the factorization of matrix $A$ into three matrices where:
+$$
+\mathbf A = \mathbf{UDV}^T
+$$
+
+- $\mathbf U$ and $\mathbf V$ are orthonormal to eachother.
+- $\mathbf D$ is a diagonal with positive real entries $\sigma_i$, where there are in descending order.
+
+The singular vectors of $\mathbf A$ are the eigenvectors of the sample covariance matrix.
 
 ## Lecture 11 - Clustering Algorithms
 

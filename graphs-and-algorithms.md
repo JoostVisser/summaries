@@ -537,3 +537,66 @@ $\mathbb P(n) = 1-(\Pr[\text{Fail in one of 4 steps}])^4$
 $\mathbb P(n) = 1-(1-\frac 1 4 \mathbb P(\frac n 2))$
 
 $\mathbb P(n) \sim \frac 1 {\log n}$. So with at least $\frac 1 {\log n}$ probability we can get a min cut.
+
+## Lecture 11 - Spectral Graph Theorem
+
+### Spectral Graphs and Eigenvalues
+
+Create a matrix that is somewhat related to the graph $G$. 
+For example, an adjacency matrix, it will be 1 if there is an edge between node $u$ and $v$. Since $G$ is an undirected graph, it will be mirrored.
+
+**Spectral graph idea**
+Start with a graph $\Rightarrow$ Make a matrix about $G$ $\Rightarrow$ Forget about $G$ $\Rightarrow$ Infer information from just the matrix (Eigenvalues + Eigenvectors)
+
+**Laplace matrix**: if there is an edge between $i$ and $j$ we put a -1, else we put a 0. Finally, the diagonal entries will be the degree of the vertex.
+
+Any vector $x \in \mathbb R^n$, we can define $Lx \in \mathbb R^n$. When we have that $Lx = \lambda x$, we have that $x$ is the eigenvector and $\lambda$ an eigenvalue.
+
+Let $L$ be an $n \times n$ symmetric matrix of graph $G$, then it has $n$ real eigenvalues. $\lambda_1 \leq \lambda_2 \leq \ldots \leq \lambda_n$
+Assume these eigenvectors to be perpendicular.
+
+How to find these eigenvalues? In particular, the smallest eigenvalue $\lambda_1$. Consider the following expression:
+$$
+\lambda_1 = \min_{x \in \mathbb R^n} \frac{x^TLx}{x^Tx}
+$$
+The smallest $x$ will be $v_1$. So for the second eigenvalue, we want to do exactly the same thing.
+$$
+\lambda_2 = \min_{x \perp v_1} \frac{x^TLx}{x^Tx}
+$$
+The vector that will make this the smallest is $v_2$.
+$$
+\lambda_i = \min_{x \perp \{v_1,  v_2, \ldots, v_{i-1}\}} \frac{x^TLx}{x^Tx}
+$$
+If your graph is just a single edge, then $x^T L x = (x_1 - x_2)^2$.
+
+Let $L$ be a laplace matrix between the edges, then we know that:
+$$
+x^TLx = \sum_{(i, j) \in E}(x_i - x_j)^2
+$$
+
+### How do we use it?
+
+Suppose we have a graph $G$ and a laplace matrix $L$. We know that $x^TLx$ is the sum of squares. Furthermore, the smallest eigenvalue can be written as $$\lambda = \min_{x \in \mathbb R^n} \frac{x^TLx}{x^Tx}$$. Because $x^TLx$ is the sum of squares, we know that all eigenvalues must be at least 0.
+$$
+\begin{align*}
+\lambda_1 & = 0, v_i = \left( \matrix {. \\ .\\.}\right)\\
+\lambda_2 & = 0 \Longleftrightarrow G \text{ is disconnected.} \\
+\cdots \\
+\lambda_k & = 0 \Longleftrightarrow G \text{ has $k$ disconnected components.}
+\end{align*}
+$$
+
+#### Some more theorems
+
+$G$ is $d$-regular $\implies\lambda_n \leq 2d$
+
+## Lecture 12 - Probabilistic Exponential time algorithms
+
+**Stirling's approximation:** $n! \approx \sqrt{2 \pi n} (\frac n e)^n$
+There, we can use that $O^*(n!) \leq O^*((\frac n e)^n)$
+Also: $1+x \leq e^x$
+
+Directed $k$-path problem: Given directed graph $G$, is there a simple path on at least $k$ vertices?
+Is $G$ acyclic? $\Rightarrow$ polynomial time via DP. (Create array $A[v]$ and get the max from this DP vector. Uses the fact that $$A[v_i] = \max_{u \in N^-(v_i)}A[u]+1$$.
+
+$$asld;​$$
