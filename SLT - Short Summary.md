@@ -1,3 +1,7 @@
+---
+typora-copy-images-to: images
+---
+
 # SLT - Short Summary
 
 > By Joost Visser
@@ -12,6 +16,7 @@ $$
 \newcommand{\X}{\mathcal X}
 \newcommand{\Y}{\mathcal Y}
 \newcommand{\1}{\mathbf 1}
+\newcommand{\O}{\mathcal O}
 $$
 
 ## Chapter 1 - Some definitions
@@ -44,7 +49,7 @@ $$
 
 ## Chapter 8 - Countably Infinite Model Spaces
 
-### Complexity Regularization Bounds
+### Complexity d Bounds
 
 -----
 
@@ -67,7 +72,7 @@ $$
 
 This theorem is quite useful, as it lets us bound the expected risk and thererfore gives us an idea of what a good estimator is for $\hat f_n$.
 
-This estimator also tells us that the performance (risk) of $\hat f_n$ performs almost as well as the best possible prediction rule $\tilde f_n$.
+This estimator also tells us that the performance (risk) of $\hat f_n​$ performs almost as well as the best possible prediction rule $\tilde f_n​$.
 
 ### Histogram example
 
@@ -104,7 +109,7 @@ The idea for leave-one-out cross valudation is to consider $n$ splits of the dat
 
 We can even choose the number of bins as follows:
 $$
-\hat f_n^{(CV)} = \hat f{n, \hat m{CV}}
+\hat f_n^{(CV)} = \hat f_{n, \hat m_{CV}}
 $$
 
 - $$\hat m_{CV} = \arg \min_m CV_{n, m}$$, the best possible number of bins found via CV.
@@ -152,11 +157,63 @@ So... where are the trees? Well, we can associate any partition of $\X$ with a d
 - Each *leaf* corresponds to a cell of the partition.
 - The *nodes* correspond to the various partition cells that are generated in the *construction* of the tree.
 
-#### Pruning
+#### Pruning to get our estimator
 
+Let $\F$ be all possible RDPs of $\X$. To make use of our theory and bounds of Chapter 8, we need to find our $c(f)$. We do so by constructing a prefix code:
 
+1. All internal nodes will be 0, all leaves will be 1.
+2. Each leaf will have a decision label (either zero or one).
+3. Read the code from top-down, left-right.
 
+This results in total of $2k-1$ bits for a tree of $k$ leaves, and $k$ bits for each decision, so a total of $3k-1$ bits. Now, we want to solve the following formula to get our bounded estimator:
+$$
+\hat f_n = \arg \min_{f \in \mathcal F} \left\{  \hat R_n(f)+ \sqrt\frac{(3k(f)-1)\log 2 + \frac 1 2 \log n}{2n} \right\}
+$$
+Again, here we have a tradeoff between the *approximation error* and the *estimation error*, which we try to minimize. Using a bottom-up pruning process, we can solve this very efficiently as we balance the reduction of $k(f)$ with an increase with risk.
 
+### Comparing the histogram classifier and classification trees
+
+So, now we have a bound on the *excess risk* of the histogram classifier and the Dyadic Decision trees. How do they compare? 
+
+#### Box-Counting assumption
+
+To compute the excess risk, we first need to compure the approximation error $(R(f)-R^*)$. For this, we need to make an assumption about the distribution $\P_{X}$, namely the **Box-Counting assumption**. 
+
+The *Box-Counting assumption* is essentially stating that the overall length of the Bayes'  decision boundary is finite (i.e. no fractals). More specifically, a length of at most $\sqrt 2 C$. 
+
+Furthermore, we assume that the marginal distribution of $X$ satisfies $\P_X(A) \leq p_{max} \text{vol}(A)$, so we can always bound the volume as well for each subset of $A$.
+
+#### Histogram Risk Bound
+
+After some fancy mathematics to calculate the expected excess risk of the histogram classifier, we can get a bound of:
+$$
+\E[R(\hat f_n^H)] - R^* = \O(n^{-1/4})
+$$
+So, as our sample size $n$ grows, the expected excess risk will decrease w.r.t. $n^{-1/4}$.
+
+#### Dyadic Decision Tree
+
+Lemma 10.4.1 in the lecture notes tells us that there exists a DDT with at most $3Ck$ leafs that has the same risk as the best histogram with $\O(k^2)$ bins. Therefore, using a similar calculation but with a different mapping $c(k)$, we can get a better bound on the expected excess risk:
+$$
+\E[R(\hat f_n^H)] - R^* = \O(n^{-1/3})
+$$
+This is because our bound on the estimation error is smaller as we only have a factor $k$ instead of $k+k^2$.
+
+### Final remarks
+
+#### Histograms vs Trees
+
+Trees generally work much better than histogram classifiers, because they approximate the Bayes' decision boundary in a much more efficient way:
+
+- They only need a tree of $\O(k)$ bits instead of a histogram that requires $\O(k^2)$ bits.
+- Because of this, the expected excess risk will converge faster and we will require less memory.
+
+In fact, the DDTs are very deep histogram classifiers followed by pruning to balance the approximation error and the estimation error.
+
+#### Other remarks
+
+1. There exists an even slightly tighter bounding procedure for the estimation error, shown by Scott and Nowak, by using the depth of the leafs as penalization variable.
+2. These bounds will work, but are quite conservative as we are over-estimating the estimation error (as we have an upper bound on the estimation error). We can add an estimator variable for this estimation error and use CV to get a great value for it. 
 
 ## Chapter 11 - VC Bounds
 
