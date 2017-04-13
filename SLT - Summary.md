@@ -2,7 +2,7 @@
 typora-copy-images-to: images
 ---
 
-# SLT - Short Summary
+# SLT - Summary
 
 > By Joost Visser
 
