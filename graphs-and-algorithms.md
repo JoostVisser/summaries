@@ -394,6 +394,9 @@ The time it takes for the second step depends on the numbers $S \in left(S_1)$. 
 Worst case: $(n-1) + (n-2) + \ldots + 1 = O(n^2)$. Only happens if $S_1 \leq S_2 \leq \ldots \leq S_n$ or vice versa.
 
 However, what if we randomly permute the numbers?
+
+Let the first $i$ numbers be already sorted.
+
 Since everything should be equal spaced, the number of numbers between $S_{i-1}$ and $S_i$ is $\frac n {i+1}$.
 
 $$\sum_i \frac{n-i}{i+1} \leq \sum_i \frac n {i+1}=n(1+\frac 1 2 + \frac 1 3 + \cdots + \frac 1 n) = O(n\log n)$$
@@ -511,19 +514,19 @@ Well, we just repeat this $n^2$ times where our total expected running time is $
 
 If we can find a better way where the probability is a bit higher, then we can improve the running time of the algorithm.
 
-So in the end, we're actually having pretty big probability terms. So the probability that we contract an edge that is not in $k​$ is quite small.
+So in the end, we're actually having pretty big probability terms. So the probability that we contract an edge that is not in $k$ is quite small.
 
 Idea: start with graph $G$ of size $n$. Contract until we have $t$ vertices. 
 $\Pr[S\text{ survives}] \geq (1-\frac 2 {n-1}) (1-\frac 2 n) \cdots (1-\frac 2 t) = \frac{(t-1)(t-2)} {n(n-1)} \approx \frac{t^2}{n^2}$
 
-Once we're down at $t$, we'll use a $t^4$ algorithm. 
-This results in an expected running time of $[n(n-t) + t^4] \cdot \frac{n^2}{t^2} \leq \frac{n^4}{t^2} + n^2t^2$. This is smallest for $t=\sqrt n$, then we get a running time of $n^3$.
+e^4Once we're down at $t$, we'll use a $t^4$ algorithm. 
+This resue^4lts in an expected running time of $[n(n-t) + t^4] \cdot \frac{n^2}{t^2} \leq \frac{n^4}{t^2} + n^2t^2$. This is smallest for $t=\sqrt n$, then we get a running time of $n^3$.
 
 #### Let's make it even faster!
 
 Remember that $\mathbb P(n) = 1 - [1 - \frac {t^2}{n^2} \mathbb P(t)] ^{\frac{n^2}{t^2}}$, where the latter part is the probability of fail in one of the $\frac{n^2}{t^2}$ runs. 
 
-What if we do this splitting again and again and again, instead of just once.
+What if we do this splitting again and again and again, instead of just once. 
 Let us take first part at $\frac 1 2 n$. 
 The probability it survives is $\frac{t^2}{n^2} = \frac 1 4$, and we do this 4 times. 
 

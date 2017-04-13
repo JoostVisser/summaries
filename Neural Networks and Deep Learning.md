@@ -236,10 +236,18 @@ The sigmoid function becomes very flat at both ends of the graph. Therefore, the
 ### Backpropagation algorithm step
 
 1. **Input** - Set $a^1$ to the corresponding input of $x$.
+
 2. **Feedforward** - For each layer $l=2, 3, ..., L$ compute $z^l = w^la^{l-1} + b^l $ and $\sigma(z^l)$.
+
 3. **Output error $\delta^L$**  - Compute the vector $\delta^L = \nabla_a C \odot \sigma'(z^L)$.
-4. **Backpropagate the error** - For each $l= L-1, L-2, ..., 2$ compute $\delta^l = ((w^{l+1})^T \delta^{l+1} ) \odot \sigma'(z^l)$.
-5. **Output** - Gradient of the cost function is given by $\frac{\partial C}{\partial b_j^l} = \delta^l_j$ and $\frac{\partial C}{\partial w_j^{jk}} = a^{l-1}_k \delta^l_j$.
+
+4. **Backprop
+
+   > .
+
+5. agate the error** - For each $l= L-1, L-2, ..., 2$ compute $\delta^l = ((w^{l+1})^T \delta^{l+1} ) \odot \sigma'(z^l)$.
+
+6. **Output** - Gradient of the cost function is given by $\frac{\partial C}{\partial b_j^l} = \delta^l_j$ and $\frac{\partial C}{\partial w_j^{jk}} = a^{l-1}_k \delta^l_j$.
 
 ### Mini-batch gradient descent step
 
@@ -325,7 +333,7 @@ How to reduce overfitting?
 
 ### Regularization
 
-#### Weight decay / L2 regularization
+yWeight decay / L2 regularization
 
 Add an extra term to the cost function, called the *regularization term*. This technique is also known as *weight decay* or *L2 regularization*.
 
