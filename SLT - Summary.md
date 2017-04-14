@@ -11,8 +11,10 @@ typora-copy-images-to: images
 $$
 \texttt{LaTeX commands}
 \newcommand{\E}{\mathbb E}
+\newcommand{\V}{\mathbb V}
 \newcommand{\P}{\mathbb P}
 \newcommand{\R}{\mathbb R}
+\newcommand{\N}{\mathbb N}
 \newcommand{\F}{\mathcal F}
 \newcommand{\X}{\mathcal X}
 \newcommand{\Y}{\mathcal Y}
@@ -22,6 +24,29 @@ $$
 \newcommand{\fhat}{\hat f_n}
 \DeclareMathOperator*{\argmin}{arg\,min}
 $$
+
+## Chapter 0 - Summarising the summary
+
+### Course summary
+
+The goal of this course is supervised learning. 
+
+1. We have an input $X \in \X$ and an output which we want $Y \in \Y$.
+2. Our goal is to find the function $f$ such that $f(X) = Y$ or at least close to $Y$.
+   - More concretely, we want to minimize a certain loss function $\ell$ that depends on the setting (such as binary classification or regression).
+3. The only thing we have access to is a dataset $D_n \equiv \{X_i , Y_i\}_{i=1}^n$ which we assume is i.i.d. from the actual data distribution (called $\P_{XY}$).
+
+Using various methods in the lecture notes, we can derive upperbounds on the excess risk (expected loss) for many different models of classifiers $\F$. 
+
+We start with simple settings and many assumptions, namely binary classification and Lipschitz functions, and build up to get bounds on $\F$ where $\F$ is uncountably infinite.
+
+Furthermore, we will see a very good way to pick our estimator $f$ from $\F$ with the data in the dataset $D_n$. (Using *Penalized empirical risk minimization*.)
+
+### Chapters summary
+
+The first chapter lays out the setting of the whole book. All definitions such as empirical risk and data spaces are explained over there.
+
+The second chapter ...
 
 ## Chapter 1 - Some definitions
 
@@ -187,6 +212,8 @@ Thus, if we make $\F$ too large, we might fit the training data too well. So we 
 
 ## Chapter 3 - Competing Goals: approximation vs estimation
 
+### Approximation and Estimation error
+
 As shown in the previous chapter, the size of $\F$ seems to play a crucial role on the performance of the estimator. One way of avoiding overfitting is to restrict $\F$ to some measure set. To analyze the performance of a $\hat f_n$ with this in mind, consider the following representation of the *expected excess risk*:
 $$
 \E[R(\hat f_n)] - R^* = 
@@ -198,22 +225,411 @@ Note that $\inf_{f \in \F} R(f)$ is the best estimator $f \in \F$.
 
 - **Approximation error:** The performance hit by imposing restrictions on $\F$.
   - Data does not play a role her, only $\F$ and $\P_{XY}$ do.
+  - When dealing with squared loss: *bias*.
 - **Estimation error:** How well we can use the data to identify the best element in $\F$.
   - Data plays a role here, as well as $\F$ and $\P_{XY}$.
+  - When dealing with squared loss: *variance*.
+
+Suppose you pick $f$ according to the empirical risk minimizer:
+
+- Approximation error will be smaller with a larger $\F$ is.
+- Estimation error will be bigger with a larger $\F$, because:
+  - *Overfitting:* the expected risk, $\E[R(\hat f_n)]$, will be large as $\hat f_n$ overfits on the empirical data, resulting in a higher expected risk compared to other classifiers in $\F$.
+
+### How to avoid overfitting
+
+There are essentially two ways we deal with the problem:
+
+1. Restrict the size of $\F$, such that we control the estimation error well.
+   - **Method of Sieves:** Let the size of the classes of candidate functions grow with $n$.
+     Take $\F_1, \F_2, \ldots, \F_n$ to pick our $f$. (See [Chapter 4](#Method-of-sieves).) 
+   - **Hold-out Methods:** Split the data in a training set $D_T$ and a validation set $D_V$. Use the training set to get a set of camdidate solutions $\hat f_\lambda \in \F_\lambda$ and use the error on the validation set to pick the best $\hat f_n$.
+     - Can also be used in conjuction with penalized empirical risk minimization.
+     - **Cross-Validation:** Randomly split the data into training and validation sets, repeat the tests and average the results. 
+       One method in particular is *leaving-one-out cross-validation*, where we are doing $n-1$ splits with only $1$ point in the test set.
+2. Instead of empirical risk minimization, add a penalty $C(f)$ w.r.t. the complexity of $\F$ and minimize both factors together. (See [Chapter 8](#Complexity-Bounds).)
+   - There also exists Bayesian methods for interpreting the cost $C(f)$.
 
 ## Chapter 4 - Estimation of Lipschitz smooth functions
 
+### Setting
 
+#### Data generated from Lipschitz function and noise
+
+Consider the following regression setting, where the output is generated as follows:
+$$
+Y=f^*(X) + W 
+$$
+
+- Where $X$ is a random variable on $\X=\{0, 1\}$.
+- $W$ is a random variable on $\Y=\R$ with $\E[W] = 0$ and $\E[W^2] = \sigma^2 < \infty$.
+- $f^*$ is a Lipschitz function, so it is somewhat smooth and does not change very quickly.
+  Formalized: $$\forall s,t \in [0,1]:|f^*(t) - f^*(s)| \leq L|t-s| $$, where $L >0$ is a constant.
+  - In words: the vertical distance is bounded by horizontal distance between $s$ and $t$.
+
+In other words, we generate the points $Y$ w.r.t. a function $f$ (e.g. a quadratic function) with some noise $W$ (some vertical distance from our $f$ function). 
+
+We can show that the best predictor (Bayes' estimator) is our function itself:
+$$
+\E[Y|X=x] = f^*(x)
+$$
+
+#### Uniform distribution of input
+
+Furthermore, we will take our $n$ samples uniformly spaced on $[0,1]$:
+$$
+x_i = \frac 1 n,\  \forall i \in \{1, \ldots, n\}
+$$
+This results in the data be generated as follows:
+$$
+Y_i = f^*\left(\frac i n\right) + W_i
+$$
+
+#### Risks
+
+In our regression setting, it can be shown that the *excess risk* of any $f$ is given by:
+$$
+R(f) - R^* = \Vert f^* -f \Vert^2
+$$
+Thus, the *expected excess risk* equals:
+$$
+\E[R(\hat f_n) - R^*] = \E[\Vert f^* - \hat f_ n\Vert^2]
+$$
+Our goal is to construct an estimator $\hat f_n$ that makes this term as small as possible. Finally, let us define the *empirical risk*:
+$$
+\hat R_n(f) = \frac 1 n \sum_{i=1}^n\left(f\left(\frac 1 n \right) - Y_i \right) ^2
+$$
+
+#### Method of sieves
+
+For this chapter, we will consider consider *piecewise constant functions*. These are functions that are constant between intervals:
+$$
+I_j \equiv \left(\frac{j-1} m, \frac j m \right], \ \forall j \in \{1, \ldots, m\}
+$$
+ Formally, we can write this class as follows:
+$$
+\F_m = \left\{f : f(t) = \sum_{j=1}^m \1 \{t \in I_j\}, \ c_j \in \R \right\}
+$$
+
+- $m$ is a constant which indicates the number of sieves.
+- $c_j$ is the constant value of a particular sieve.
+
+The idea of the method of sieves is to let $m$ depend on $n$, such that we can get the best possible expected excess risk. 
+
+Why not consider linear functions instead? It turns out that, in the worst case scenario, there is no added value in doing so.
+
+### Analysis
+
+First, we split up our expected excess risk in the well known approximation and estimation error:
+$$
+\E[\Vert f^*-\hat f_n \Vert^2] = 
+\underbrace{\Vert f^*- \bar f  \Vert^2}_{\texttt{Approximation error}} + 
+\underbrace{\E[\Vert\bar f - \hat f_n \Vert^2]}_{\texttt{Estimation error}}
+$$
+
+- We denote $\bar f(t)$ as $\E[\hat f_n(t)]$, which is our expected (average) estimator independent from the $n$ datapoints.
+
+#### Empirical Risk Minimization
+
+Consider the set of $x$ (or $i$) values for our datapoints $N_j = \{i \in \{1, \ldots, n\} : \frac i n \in _j\}$.
+Using fancy mathematics, we can show that our empirical risk minimizer equals:
+$$
+\hat f_n (t) = \sum_{j=1}^m \hat c_j \1\{t \in I_j\}, \text{ where } \hat c_j =  \frac 1 {|N_j|}\sum_{i \in N_j} Y_i
+$$
+
+- So this estimator just consists of constant functions in the sieves, where the constants are the average of the points within the sieves of the dataset.
+
+Further calculation shows a similar result to $\bar f$, but then using $f^*(X)$ instead of $Y_i$:
+$$
+\bar f (t) = \sum_{j=1}^m \bar c_j \1\{t \in I_j\}, \text{ where } \bar c_j =  \frac 1 {|N_j|}\sum_{i \in N_j} f^*\left(\frac 1 n\right)
+$$
+
+#### Approximation and Estimation errors
+
+We can show that the *approximation error* equals:
+$$
+\Vert f^* - \bar f \Vert^2 \leq \left(\frac{L}{m}\right)^2
+$$
+So we can make the approximation error small by taking $m$ large.
+
+Furthermore, we can show that the *estimation error* equals:
+$$
+\E[\Vert\bar f - \hat f_n \Vert^2] \leq 2 \sigma^2 \frac m n
+$$
+So the estimation error increases by taking $m$ large.
+
+Now, we have a tradeoff between the approximation error and the estimation error. When we combine these into our expected excess risk, then we get:
+$$
+\E[\Vert f^*-\hat f_n \Vert^2] \leq \frac{L^2}{m^2} + 2 \sigma^2 \frac m n = \O\left(\max \left \{\frac 1 {m^2}, \frac m n\right\}\right)
+$$
+Thus, we need to balance our $m$ for our expected risk. The best way to do this is to pick $m = n^{1/3}$. This results in a expected MSE of:
+$$
+E[\Vert f^*-\hat f_n \Vert^2] = \O\left(\frac 1 {n^{2/3}}\right)
+$$
+So our expected excess risk will decrease w.r.t. the size of our training set, the more samples we have, the lower the expected excess risk.
+
+Some fun things to note:
+
+1. We just devised a sieve estimator, as we are choosing an element ini a sequence of classes using the size of our training set.
+2. One can show that this $\O$ bound cannot be improved further, thus we have a *minimax* lower bound.
+3. We are considering classes that are actually not Lipschitz to estimate a Lipschitz function!
 
 ## Chapter 5 - Introduction to PAC learning
 
+### Deriving a bound on the estimation error
 
+Let us consider the formula for the expected excess risk [again](#Approximation-and-Estimation-error):
+$$
+\E[R(\hat f_n)] - R^* = 
+\underbrace{\left(\E[R(\fhat)] - \inf_{f \in \F} R(f) \right)}_{\texttt{estimation error}} + 
+\underbrace{\left(\inf_{f \in \F} R(f)- R^* \right)}_{\texttt{approximation error}}
+$$
+For the *approximation error*, we need to make some sort of assumption on the distribution $\P_{XY}$ to see how well our class of models $\F$ can model the risk of the Bayes' predictor, which depends on $\P_{XY}$.
+
+For the *estimation error*, however, we can derive very good bounds without making any assumptions on $\P_{XY}$. This will be our goal for the coming chapters. We will derive this using PAC bounds.
+
+### PAC bounds
+
+Using just the *expected excess risk* is a bit limited, as we might have a very large expected excess risk when the risk is extremely large with a small probability, while it is small otherwise.
+
+Hence we have **PAC bounds** for finer control and more information. PAC stands for "Probably Approximately Correct", so **PAC bounds** are bounds that bound the stimation error with high probability. Formally, we say that $\hat f_n$ is $\epsilon$-accurate with confidence $1-\delta$ if:
+$$
+\P\left(R(\hat f_n) - \inf_{f \in \F} R(f) > e \right) < \delta
+$$
+
+- In other words: $R(\hat f_n) - \inf_{f \in \F} R(f) \leq \epsilon$ with at least probability of $1-\delta$.
+- This is also called $(\epsilon, \delta)$-PAC.
+
+### PAC bounds for binary classification
+
+Some assumptions we make for this setting:
+
+- We assume that $\F$ is finite. Let $|\F|$ denote the finite number of models.
+- $\min_{f \in \F} R(f) = 0$, so our Bayes' classifier makes absolutely no errors and is in $\F$.
+
+With these assumptions, we can derive our $\delta$ using the following theorem: 
+
+----
+
+**Theorem 5.1.1**
+
+Let $\hat f_n$ be the empricial risk minimizer, where $\hat R_n(f)$ is the empirical risk with 0/1 loss. 
+If $\inf_{f \in \F} R(f) = 0$, then for every $n$ and $\epsilon$:
+$$
+\P\left(R(\hat f_n) > \epsilon \right) < |\F| e^{-n\epsilon} \equiv \delta
+$$
+
+----
+
+We can use this theorem to get a bound on the expected excess risk:
+
+----
+
+**Corollary 5.1.1**
+
+Consider the setting of Theorem 5.1.1. Then it holds that:
+$$
+\E[R(\hat f_n)] \leq \frac{1 + \log |F|} n
+$$
+
+----
+
+Finally, to prove the above corollary, we had to make use of the following lemma, which bounds the expected value to a probability by integrating sideways.
+
+-----
+
+**Lemma 5.1.1**
+
+For any non-negative random variable $Z$ with finite mean:
+$$
+\E[Z] = \int_0^\infty \P(Z > t) dt
+$$
+
+-----
+
+### How good is the empirical risk minimizer?
+
+In the setting above, we can derive some nice bounds, but these require very strong assumptions about $\F$ and $\P_{XY}$, namely that the Bayes' classifier is in $\F$  (approximation error is 0).
+
+Let us consider **Agnostic Learning** - making no assumptions on $\P_{XY}$ - for the rest of this chapter. 
+
+The whole time we considered the Empirical Risk Minimizer. But how good is this estimator? Assume that we can show, for any $f \in \F$, the following result; with probability at least $1-\delta$:
+$$
+|\hat R_n(f) - R(f)| \leq \epsilon, \ \forall f \in \F
+\tag{5.1}
+$$
+
+- For small $\epsilon >0$ and small $\delta > 0$. 
+- We will show this in [Chapter 7](#Bounded-loss-functions) using the theory of Chapter 6.
+
+Then we can show that *Empirical Risk Minimization (ERM)* makes sense, because we can conclude with probability at least $1-\delta$:
+$$
+R(\hat f_n) \leq \inf_{f \in \F} R(f) + 2 \epsilon
+$$
+Thus, the true risk of the selected rule is only a little bit higher than the risk of the best possible rule in class.
+
+However, to the result of $(5.1)$ is not easy to derive. We can show via some mathematics that $\E[\hat R_n(f)] = R(f)$, so by law of large numbers the true mean converges to $R(f)$ as $n \rightarrow \infty$. However, to give an exact bound as in $(5.1)$, we need *concentration inequalities*, shown in Chapter 6. Using this way, we can also show how fast the expected risk converges to the actual risk depending on our training set size $n$.
 
 ## Chapter 6 - Concentration Bounds
 
+In this chapter, we will take a detour from the statistical learning setting and focus more on deriving *probabilistic bounds* for the *sum of independent random variables*. Since the empirical risk is a sum of random variables, we can use these results to derive bounds on our empirical risk.
 
+### Markov and Chebyshev's inequalities
+
+**Markov's inequality:** Let $Z \geq 0$ be a non-negative random variable and $t>0$, then;
+$$
+\P(Z \geq t) \leq \frac{\E[Z]} t
+$$
+**Chebyshev's inequality:** Let $X$ be a random variable with finite mean and $t>0$, then:
+$$
+\P(|X - \E[X]| \geq t) \leq \frac{\V}{t^2}
+$$
+
+### Basic concentration inequality for averages
+
+Let $X_1, \ldots, X_n$ be i.i.d. random variables, with $\E[X_i] = \mu$ and $\V[X_i] = \sigma^2$.
+Define $S_n = \sum_{i=1}^n X_i$ to be the sum of these random variables.
+
+Then we can show using Chebyshev's inequality that:
+$$
+\P\left(\left\vert \frac{S_n} n - \mu \right\vert \geq \epsilon \right) \leq \frac{\sigma^2}{n\epsilon^2}
+\tag{6.1}
+$$
+This converses to zero as $n \rightarrow \infty$ and shows how $\frac {S_n} n$ concentrates around the mean $\mu$. That is why this is known as a *concentration inquality*. However, this concentration inequality is generally quite loose, as the probability of the l.h.s. is normally much, much smaller than $\frac {\sigma^2}{n\epsilon^2}$.
+
+We can show using the central limit theorem that the roughly should hover around:
+$$
+\P\left(\left\vert \frac{S_n} n - \mu \right\vert \geq \epsilon \right) \lessapprox e^{-\frac{n\epsilon^2}{2\sigma^2}}
+$$
+This shows that $\frac {S_n} n$ actually concentrates exponentially fast around $\mu$ when $n$ increases, instead of linearly fast (as shown in $(6.1)$).
+
+### Chernoff bounding and Hoeffding's inequality
+
+We can use a Chernoff Bound to deal with the sum of random variables nicely:
+
+---
+
+**Theorem 6.3.1 (Chernoff Bound)**
+
+Let $X_1, \ldots, X_n$ be independent random variables and define $S_n = \sum_{i=1}^n X_i$. Then:
+$$
+\P(S_n \geq t) \leq \inf_{s>0} \left\{ e^{-st} \prod_{i=1}^n \E\left[e^{sX_i}\right]\right\}
+$$
+
+----
+
+The idea of deriving this bound is the use of an exponential function, so that the expectation becomes the product of expectations. However, we still have the term $\E[s^{sX_i}]$. With an extra assumption on $X_i$, we can a concentration bound with the Hoeffding's Inequality.
+
+----
+
+**Theorem 6.3.2 (Hoeffding's Inequality)**
+
+Let $X_1, \ldots, X_n$ be independent r.v. such that $X_i \in [a_i, b_i]$ with probability 1. Let $S_n = \sum_{i=1}^n X_i$. Then, for any $t > 0$, we have:
+
+1. $$\P(S_n - \E[S_n] \geq t) \leq e^{-\frac{2t^2}{\sum_{i=1}^n (b_i - a_i)^2}}$$
+2. $$\P(S_n - \E[S_n] \leq -t) \leq e^{-\frac{2t^2}{\sum_{i=1}^n (b_i - a_i)^2}}$$
+3. $$\P(|S_n - \E[S_n]| \geq t) \leq 2e^{-\frac{2t^2}{\sum_{i=1}^n (b_i - a_i)^2}}$$
+
+----
+
+This seems to capture the intuition we gained using the central limit theorem. In fact, with a coin flip example, we can show that we only lost a factor of two, but this result is not an approximation.
+
+### Coin flip example of Hoeffding's inequality
+
+Suppose we have a coin and we know it has a bias. How many coin flips do you need to decide the direction of the bias? We can consider the sample mean of all flips $\hat p$. .
+
+Futhermore, suppose the coin is tail-based, with $p=1/2-\epsilon$. We'll make an error if $\hat p \geq 1/2$. We can show that this probability equals:
+$$
+\P(\hat p \geq 1/2) \leq e^{-en\epsilon^2}
+$$
+
+- We want the probability of deciding correctly at least $1-\delta$, so we should take $\delta \geq e^{-2n\epsilon^2}$.
+
+This means that we need to take $n$ at least the following part:
+$$
+n \geq \frac 1 {2\epsilon^2} \log\left(\frac 1 \delta\right)
+$$
+If $\hat p \geq 0.5$ after $n$ flips, then we know that the coin is tail biased. Similar arguments hold for a head-biased coin.
+
+The only problem is that we need to know error rate $\epsilon$ of the coin. There is a way to solve this, though. We can construct via fancy mathematics intervals for which the coin flips should be within:
+$$
+I_n = \left[\hat p_n - \sqrt\frac{\log(n(n+1)) + \log \frac 2 \delta}{2n}, \hat p_n + \sqrt\frac{\log(n(n+1)) + \log \frac 2 \delta}{2n} \right]
+$$
+Then, the probability that for all coin flips, it should be within this bound is $\geq 1-\delta$: 
+$$
+\P(\forall_n \in \N : p \in I_n) \geq 1-\delta
+$$
+Actually, $\log \log(n)$ is a better bound than $\log(n(n+1))$, but this is harder to show.
 
 ## Chapter 7 - General bounds for bounded losses
+
+The *concentration inequalities* of the previous chapter tells us how fast the average of independent random variables converge to the mean. Since the empirical risk $\hat R_n(f)$ is an average of random variables, we will use this result to derive bounds on how close the empirical risk is to the true risk.
+
+### Bounded loss functions
+
+> Sidenote: In case the loss function isn't bounded, but the label space is, then we can still derive a bound. Suppose our labelspace $\Y=[-R, R]$ and we use the squared error $\ell(y_1, y_2) = (y_1 - y_2)^2$, then we have a bounded loss function $\ell: \Y \times \Y \rightarrow [0, 4R^2]$, as $4R^2$ is the largest possible loss.
+
+In this chapter, we will consider bounded loss functions. Using Hoeffding's inequality and the union bound, we can show that:
+$$
+\P\left(\forall f \in \F: \hat R_n(f) \geq R(f) + \epsilon\right) \geq 1 - |\F|e^{-2n\epsilon^2} \equiv 1 - \delta
+$$
+After solving for $\delta$ and using the two-sided version of Hoeffding's inequality, we get that for $\delta > 0$:
+$$
+\forall f \in \F: \left \vert \hat R_n(f) - R(f) \right \vert < \sqrt\frac{\log |\F| + \log \frac 2 \delta}{2n}
+$$
+With probability at least $1-\delta$. This means that the empirical and true risk will be close with at least probability $1 - \delta$, given that $n$ and $\F$ are large. In [Chapter 5](#How-good-is-the-empirical-risk-minimizer?) we saw that, given this result, we could justify the rational behind empirical risk minimization.
+
+### Expected risk bound for ERM 
+
+We can show that, using empirical risk minimization, with probability at least $1-\delta$, that:
+$$
+R(\hat f_n) < \hat R_n (\tilde f) + C(\F,n,\delta)
+$$
+
+- Where $\tilde f = \argmin_{f \in \F} R(f)$, i.e. the best estimator in $\F$.
+- $$C(\F,n,\delta) = \sqrt\frac{\log|\F| + \log \frac 1 \delta}{2n}$$, the bounding term.
+
+We can use this to calculate the *expected empirical risk*. We can show that:
+$$
+\E[R(\hat f_n) -  \hat R_n (\tilde f)] < C(\F,n,\delta) + \delta
+$$
+
+- (The extra $\delta$ term comes from $\P(1-\Omega) \leq \delta$)
+
+In particular, if we take $\delta = \frac 1 {\sqrt n}$, we get the following PAC-bound on the empirical risk:
+
+---
+
+**Proposition 7.2.1 - Expected risk bound for empirical risk** 
+
+Let $\{X_i, Y_i\}_{i=1}^n$ be i.i.d. samples from $\P_{XY}$ and $\ell$ a bounded loss function, then:
+$$
+\E[R(\hat f_n)] -  \min_{f \in \F}  R(f)< \sqrt \frac{\log |\F| + \frac 1 2 \log n + 2} n
+$$
+
+-----
+
+### PAC-bound for ERM
+
+Via the union bound and Hoeffding's inequality, we can also derive a PAC-bound for the empirical risk:
+
+----
+
+**Proposition 7.3.1 - PAC-bound for empirical risk**
+
+Under the same assumptions as Proposition 7.2.1, we have that for any $\delta > 0$:
+$$
+R(\hat f_n) - \inf_{f \in \F} R(f) < 2 \sqrt\frac{\log(1+|\F|) + \log (\frac 1 \delta)}{2n}
+$$
+With probability at least $1-\delta$.
+
+-------
+
+### Histogram application
+
+
+
+
 
 
 
