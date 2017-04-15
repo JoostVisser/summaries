@@ -571,7 +571,7 @@ The *concentration inequalities* of the previous chapter tells us how fast the a
 
 In this chapter, we will consider bounded loss functions. Using Hoeffding's inequality and the union bound, we can show that:
 $$
-\P\left(\forall f \in \F: \hat R_n(f) \geq R(f) + \epsilon\right) \geq 1 - |\F|e^{-2n\epsilon^2} \equiv 1 - \delta
+\P\left(\forall f \in \F: \hat R_n(f) \leq R(f) + \epsilon\right) \geq 1 - |\F|e^{-2n\epsilon^2} \equiv 1 - \delta
 $$
 After solving for $\delta$ and using the two-sided version of Hoeffding's inequality, we get that for $\delta > 0$:
 $$
@@ -594,7 +594,7 @@ $$
 \E[R(\hat f_n) -  \hat R_n (\tilde f)] < C(\F,n,\delta) + \delta
 $$
 
-- (The extra $\delta$ term comes from $\P(1-\Omega) \leq \delta$)
+- (The extra $\delta$ term comes from $\P(\bar \Omega) \leq \delta$)
 
 In particular, if we take $\delta = \frac 1 {\sqrt n}$, we get the following PAC-bound on the empirical risk:
 
@@ -627,7 +627,34 @@ With probability at least $1-\delta$.
 
 ### Histogram application
 
+Setting: $\Y= \{0, 1\}$ with 0/1 loss.
 
+**Histogram classifier:** Divide the feature space $\X$ into $m$ smaller sets ($\sqrt m \times \sqrt m$ grid). In each set, see which label occurs the most, then predict this label for these features.
+
+- Sort of a density-based classifier with majority vote.
+
+Formally, denote each partition set by $Q_j$, with $j \in \{1, \ldots, m\}$, where:
+$$
+\bigcup_{j=1}^m Q_j = \X \text{ and } \forall j \neq k: Q_j \cap Q_k = \emptyset
+$$
+In words: all $Q_j$ sets together should form $\X$ and they should not overlap. 
+
+Now we can also fomally define the class of classification rules:
+$$
+\F_m\left\{ f:\X \rightarrow \{0, 1\} : f(x) = \sum_{j=1}^m c_j \1 \{ x \in Q_j \}, c_j \in \{0, 1\} \right\}
+$$
+
+- It's $c_j$ for all inputs $x$ such that these are inside $Q_j$
+
+- The constants are decided by majority vote:
+  $$
+  \hat c_j = 
+  \begin{cases}
+  1 & \text{if } \frac{\sum_{i : X_i \in Q_j}Y_i}{\sum_{i : X_i \in Q_j}1} \geq 1/2 \\
+  0 & \text{otherwise}
+  \end{cases}
+  $$
+  ​
 
 
 
@@ -707,7 +734,7 @@ This often works very well in practice, but is not a silver bullet and an answer
 
 ### Excess risk of the penalized empirical risk minimization
 
-Suppose we grab the [Complexity Regularization Bounds](#Complexity-Regularization-Bounds) and rewrite it in terms of the excess risk $\E[R(\hat f_n)] - R^*$, where $R^*$ is the Bayes risk. Then we get the following formula:
+Suppose we grab the [Complexity Regularization Bounds](#Complexity-Bounds) and rewrite it in terms of the excess risk $\E[R(\hat f_n)] - R^*$, where $R^*$ is the Bayes risk. Then we get the following formula:
 $$
 \E[R(\hat f_n)] - R^* \leq \inf_{f \in \F}  \left\{  \underbrace{R(f) - R^*}_{\texttt{approximation error}}+ \underbrace{\sqrt\frac{c(f) + \frac 1 2 \log n}{2n} + \frac 1 {\sqrt n}}_{\texttt{bound on estimation error}}\right\}
 $$
