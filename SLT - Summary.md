@@ -1096,9 +1096,12 @@ $$
 $$
 So, similar to [Chapter 8](#Complexity-Bounds), we can go for the *minimum penalized empirical risk predictor* by taking a combination of the error on the data set and a regularization term. After some more mathematics, taking $\delta = \frac 1 {\sqrt{n+1}}$, and applying the VC dimension of trees, we get the following bound for decision trees:
 $$
-\E[R(\hat f_n)] - R^* \leq \inf_k \left\{\inf_{f \in \mathcal F_k} \left\{R(f) - R^* + 8 \sqrt\frac{(k(d+1)+1/2)\log(n+1)+3+k\log 2)}{2n} \right\}\right\} + \frac 1 {\sqrt{n+1}}
+\begin{align*}
+&\E[R(\hat f_n)] - R^* \\
+&\leq \inf_k \left\{\inf_{f \in \mathcal F_k} \left\{R(f) - R^* + 8 \sqrt\frac{(k(d+1)+1/2)\log(n+1)+3+k\log 2)}{2n} \right\}\right\} + \frac 1 {\sqrt{n+1}}
+\end{align*}
 $$
 If you compare this with the bounds of [Chapter 9](#Dyadic-Decision-Tree), we get a bound with essentially the same form, although now we're condiering a much richer class of classification rules. Compared to recursive dyadic partitions, we have an uncountable number of trees with $k$ cells here.
 
-## Chapter 12 - Denoising of Piecewise Smooth Functions
+
 
