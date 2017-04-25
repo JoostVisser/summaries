@@ -863,7 +863,7 @@ This result is useful only if the bound in the estimation error is good and the 
 
 Suppose we have a universe $\X = [0, 1]^2$, which you can idenity as a square. You can consider the best classifier (Bayes' classifier) as a set $G^* = \{ x: \P(Y=1|X=x)\geq\frac 1 2)$, such that our Bayes' classifier $f^*(x) = \1\{x \in G^*\}$. In words, this means that we have a subset of $\X$, namely $G^*$, and if our features $x$ are inside this set/field, then we should predict 1. An illustration of this can be shown below:
 
-![Bayes' illustrated](images/Bayes' illustrated.png)
+![Bayes' illustrated](../images/Bayes' illustrated.png)
 
 The boundary of $G^*$ is called the *Bayes Decision Boundary* and is given by $\{x:\eta(x) = \frac 1 2\}$.
 
