@@ -1,10 +1,15 @@
-# Process Algebra
+# Process Algebra - Lecturess
 
 [TOC]
 
 $$
 \texttt{LaTeX commands}
 \newcommand{\N}{\mathbb N}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\la}{\leftarrow}
+\newcommand{\lra}{\longrightarrow}
+\newcommand{\lla}{\longleftarrow}
+\newcommand{\bis}{\overset \leftrightarrow -}
 $$
 
 ## Lecture 0 - What is process algebra?
@@ -13,7 +18,14 @@ $$
 
 [Website](http://www.win.tue.nl/~luttik/Courses/PA/schedule.php)
 
-**Reactive systems:** Systems that do not terminate.
+**Classic view** of a computer program is a program that transforms an input form an output. Program $P$ is a partial function: $[[P]]:States \rightarrow States$, which always terminate.
+
+What about vending machines? Operating systems? $\implies$**Reactive systems:** Systems that compute something by reacting to stimuli in the environment.
+
+*Goals of this coarse*
+
+- How to develop (design) a system that works
+- How to analyse (verify) the design.
 
 **Concurrency theory:** Active field in CS that studies formalisms for modelling/analysing systems.
 
@@ -73,7 +85,7 @@ We write $T \vdash t = u$ if $\exists$ derivation of $t=u$ using the following r
 - $\dfrac {}{t=u}$ $\leftarrow$ **Axiom**, if $t=u$ is an equation in $E$.
 - $\dfrac {}{t=t} \leftarrow$ **Reflection**
 - $\dfrac {t=u}{u=t} \leftarrow$ **Symmetry**
-- $\dfrac{t=u \ \ \ \ \ \ u=v}{t=v} \leftarrow $ **Transitivity**
+- $\dfrac{t=u \quad u=v}{t=v} \leftarrow $ **Transitivity**
 - **Substitution rule**
 - **Cont**
 
@@ -119,3 +131,54 @@ Regular transition system = finite automaton
 A word $\sigma \in L^*$ is a complex execution / run of a transition 
 
 Language: words that are recognized by the finite automaton. (Ways of going input $\rightarrow$ output.)
+
+## Lecture 2
+
+### Some exercise stuff
+
+To proof:
+$$
+T \vdash e(s^m(0), s^n(0)) = s^{m^n}(0)
+$$
+Proof: Induction on $n$
+
+If $n=0$, then:
+$$
+\begin{align*}
+T_2 \vdash e(s^m(0), s^n(0))
+&\equiv e(s^m(0), 0) \\
+& = s(0) &[PA5] \\
+& \equiv s^{m^n}(0)
+\end{align*}
+$$
+Let $n\geq 0$ and suppose $T_2 \vdash e(s^m(0), s^n(0)) = s^{m^n}(0)$. (Induction Hypothesis)
+
+Then:
+$$
+\begin{align*}
+T_2 \vdash e(s^m(0),s^{n+1}(0))
+&\equiv e(s^m(0), s(s^n(0)) \\
+& = m(e(s^m(0), s^n(0)), s^m(0)) & [PA6]\\
+& \overset {IH} = m(s^{m^n}(0), s^m(0)) \\
+& = s^{m^n m }(0) & \text{[By (2.2.3)]}\\
+& \equiv s^{m^{n+1}}(0)
+\end{align*}
+$$
+### Lecture part
+
+Binary relation $R$ on the set of states $S$ of a transition-system space is a **bisimulation relation** iff $\forall{s ,t \in S}$ where $s\ R\ t$:
+
+1. If $s \overset a \lra s' ​$ for some $a \in L​$ and $s' \in S​$, then $\exists t' \in S​$ such that $t \overset a \lra t'​$ and $s'\ R\ t'​$
+2. ​
+
+$a \bis b$ 
+
+
+
+## Lecture 3
+
+### Missed the first part
+
+### Second part
+
+He
