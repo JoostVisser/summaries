@@ -654,6 +654,7 @@ We can even check for normality of the residuals, which was part of our assumpti
 We can even do an (uncommon) statistical test by combining different time-lags to see for any statistical significant different between - Prediction vs Actual value - :
 
 - This is called the Box-Ljung test.
+- Generally: `lag=10` when not having seasonality and `lag=20` if we do have one.
 
 ### Exponential smoothing with trend
 
@@ -801,6 +802,26 @@ There are various ways of initializing the initial values. We're not going to di
 
 Finally, there are various optimization options to set constraints on the automatic hyper-parameter optimization, such as that all numbers should be non-negative.
 
+### Automatic Exponential Smoothing Forecasting
+
+**Goal:** Select the best model from a set of candidates.
+
+Principles of automatic smoothing:
+
+- Compare candidate models using a Goodness-of-Fit tests
+  - Keep it Simple, aka account for complexity. (Uses $AIC$ as criterion.)
+  - Independent validation set preferred
+- Perform a residual analysis for the final model selected!
+
+*Warning:* There does not exist a "single best model" but generally many models perform equally well. Some might have preferred properties over other models.
+
+The automatic forecasting uses a more general class of models:
+
+- Trend: None, Additive (+ Damped), and Multiplicative (+ Damaged)
+- Seasonality: None, Additive, and Multiplicative.
+
+We just consider every single possible combinations of these two classes ($5 \cdot 3 = 15$ combos).
+
 
 
 ### R code
@@ -830,10 +851,28 @@ Box.test(births.hw.fore$residuals, lag=20, type="Ljung-Box")
 
 # Look for the normality of the data.
 qqPlot(births.hw.fore$residuals)
-
 ```
 
 Since alpha and gamma are very similar, we can put them equal to each other for reduced overfitting. Furthermore, notice that the residuals still have some statistical significant autocorrelation, perhaps there might be even another seasonality / cycle in the data.
 
 - Normality assumption is used for the *confidence interval* and the forecast.
 
+#### Automatic Exponential Smoothing Forecasting
+
+Here we will perform automatic ES forecasting on the Kings dataset.
+
+```R
+# Performing automatic ES on the kings dataset.
+kings.ets <- ets(kings.ts)
+kings.ets				# Showing the model used + smoothing parameters + criteria.
+accuracy(kings.ets)		# In-sample accuracy measurements
+tsdiag(kings.ets)		# In-sample diagnostics
+plot(kings.ets)			# Plotting all of the components.
+
+# Plotting the forecast including statistical intervals
+plot.forecast(kings.ets)
+
+# Analyzing the residuals
+tsdisplay(kings.ets.fore$residuals)
+Box.test(kings.ets.fore$residuals, lag=10, type="Ljung-Box")
+```
