@@ -46,7 +46,7 @@ Schedule for the course:
 
 2. **Focus 1 - Exponential Smoothing Models**
    - Simple Exponential Smoothing 
-   - Holts Exponential Smoothing 
+   - Holt's Exponential Smoothing 
    - Holt-Winters Exponential Smoothing
 3. **Focus 2 - Box-Jenkins ARIMA Models**
    - ARMA Models for Stationary Series 
@@ -530,13 +530,14 @@ You can actually estimate a confidence bandwidth of the spectrum. This is indica
 
 ## Lecture 6 - Exponential smoothing
 
-### Exponential Smoothing
+### Types of exponential Smoothing
 
 Three types of exponential smoothing:
 
 1. Simple Exponential Smoothing
    - No trend, no seasonality.
-2. Holts Exponential Smoothing
+2. Holt's Exponential Smoothing
+   - Might contain trend, no seasonality
 3. Holt-Winters Exponential Smoothing
    - Might contain trend, might contain seasonality
 
@@ -544,6 +545,8 @@ There are some various naive models, such as taking the mean or taking some slig
 
 That's why we're gonna use exponential smoothing.
 **Goal:** Extending on the idea of decomposition. Generally, it does not contain an underlying model and as such no underlying stochastic processes.
+
+Advantages over decomposition: more flexible with better prediction.
 
 ### Simple Exponential Smoothing
 
@@ -598,7 +601,7 @@ If we apply simple exponential smoothing, we get a prediction. We can use this p
 
 #### Simple Exponential Smoothing
 
-We use HoltWinters with it, but we ignore the beta and the gamma. Our alpha isj the *initial* value for the estimate ($\hat L_1 \approx x_1$).
+We use HoltWinters with it, but we ignore the beta and the gamma. Our alpha is the *initial* value for the estimate ($\hat L_1 \approx x_1$).
 
 ```R
 # Applying simple exponential smoothing on the rain time-series.
@@ -610,5 +613,227 @@ plot(rain.ses1$fitted) 	# We're looking at a very basic model.
 plot(rain.ses1) 		# Both prediction and realization plots
 ```
 
+## Lecture 7 - Holt's Exponential Smoothing
 
+### Simple Exponential Smoothing 2
+
+#### Goodness-of-Fit Measures
+
+There are various difference measures to check how well our estimation performs with respect to the data. Examples of this would be:
+
+Taking the signs into account for the bias:
+
+- $ME = $ Mean Error
+- $MPE = $ Mean Percentage Error
+
+Taking the signs not in account, for the variability:
+
+- $MAE = $ Mean Absolute Error
+- $SSE = $ Sum of Squared errors
+- $RMSE = $ Root Mean Squared Error
+- $MAPE = $ Mean Absolute Percentage Error
+
+There exists libraries in R that automatically finds the optimal $\alpha$ with respect to a certain error measure (SSE + regularization penalty).
+
+#### Holt-Winters Forecasts
+
+So with our Simple Exponential Smoothing model, how do we look into the future. We can derive a forecast using the same mathematics.
+
+The two-step ahead uses the value of the one-step ahead prediction, as this is our best prediction. So does the three-step ahead prediction with the two- and one-step ahead prediction. 
+
+In fact, the values will stay the  same because of this reason. Thus our prediction will be a horizontal line.
+
+#### Checking the residuals of the model
+
+We can actually check all the residuals of the model, i.e. the differences between the model and the actual value. In fact, we can even fingerprint these residuals to check the autocorrelation function and the partial autocorrelation function.
+
+If there is still some significant autocorrelation, then perhaps we didn't use the correct $\alpha$ value and we should try a different model.
+
+We can even check for normality of the residuals, which was part of our assumption.
+
+We can even do an (uncommon) statistical test by combining different time-lags to see for any statistical significant different between - Prediction vs Actual value - :
+
+- This is called the Box-Ljung test.
+
+### Exponential smoothing with trend
+
+Now we'll add an extra variable. First, let us recap $\alpha$:
+
+- Level $\alpha$ is the level of the model, which is basically the standard value without trend and seasonality.
+
+Now, the estimate of the trend will use both $\alpha$ and a new parameter $\beta$, which is the trend parameter. For the type of model where there is a clear trend we can use the **Holt's model**.
+
+The principle consists of:
+
+- $x^T_{t-1} = $ The value of the data-point.
+- $\hat L_{t-1} = $ The estimate of the level of the current time-step.
+- $\hat T_{t-1} = $ The estimate of the trend of the current time-step.
+
+First we estimate our current value:
+$$
+\hat x^T_{t-1}(1) = \hat L_{t-1} + \hat T_{t-1}
+$$
+Then we can update for the next values.
+
+- The level update, which is done accordingly:
+  - $\hat L_t = \alpha x_t^T + (1-\alpha) (\hat L_{t-1} + \hat T_{t-1})$
+- The trend estimate, with the following formula:
+  - $\hat T_t = \beta(\hat L_t - \hat L_{t-1}) + (1-\beta)\hat T_{t-1}$
+  - $\beta$ close to 1: immediate change to the present, fast changes.
+  - $\beta$ close to 0: Slow changes, more to the past. (Does **not** mean that there is no trend.)
+- Finally, we can estimate the next value of the datapoint $\hat x_{t-1}^T$.
+
+*Small side-notes:*
+
+- Similar to ARIMA(0,2,1) model
+- Two parameter version of exponential smoothing. 
+- Brown's Exponential Smoothing is $\alpha = \beta$. (Less prone to overfitting.)
+- Influence of *inital values* for the level and the trend doesn't influence the result much. We can just use the value of $\hat L_1 \approx x_1$ and $\hat T_1 \approx x_2 - x_1$.
+- We can even add constraint to the score function, such as no negative values for forecast volcano activity.
+
+### R-code
+
+#### Forecasting
+
+With this function, we can see the predictions of our models for the next time-steps, also known as forecasting.
+
+```R
+# Forecasting using the Simple Exponential Smoothing model for 10 timesteps.
+rain.ses1.fore <- forecast.HoltWinters(rain.ses1, h=10)
+```
+
+#### Residuals
+##### Residuals of the forecast
+
+How does my residuals look like, which are the differences between the actual value with the forecast of my model. We can actually fingerprint this!
+
+```R
+# Performing fingerprinting on the residuals of our model
+tsdisplay(rain.ses1.fore$residuals)
+```
+
+##### Box-Ljung test
+
+There exists a test that combines different time-lags for the auto-correlations and see if there is a significant auto-correlation. 
+
+```R
+Box.test(rain.ses1.fore$residuals, lag=20, type="Ljung-Box")
+```
+
+##### Normality of residuals
+
+We can also check the normality of the residuals:
+
+```R
+# Needs package "car"
+qqPlot(rain.ses1.fore$residuals)
+shapiro.test(rain.ses1.fore$residuals)
+```
+
+#### Model testing
+##### Accuracy of our model
+
+How do we check the In-Sample accuracy for our model? Luckily, there exists a standard `accuracy` function in R:
+
+```R
+# Check various errors, such as ME, RMSE, MAPE, etc.
+with(rain.ses1, accuracy(fitted, x))
+```
+
+##### Optimal alpha estimated
+
+If we want to find an optimal value for $\alpha$, then it can be automatically determined from the 'running' 1-step ahead.
+
+```R
+# Value with optimal alpha for minimizing the penalized empirical risk
+rain.ses2 <- HoltWinters(rain.ts, beta=False, gamma=False)
+rain.ses2		# Check the smoothing parameters
+```
+
+This uses a sum of squares plus some regularization penalty.
+
+#### Holt's exponential smoothing
+
+Here is the automatic implementation of the Holt's exponential smoothing.
+
+```R
+# Perform Holt's exponential smoothing to obtain a model for the skirts dataset.
+skirts.hes <- HoltWinters(x=skirts.ts, gamma=False)
+skirts.hes 					# Check the smoothing parameters
+plot(skirts.hes$fitted) 	# Plotting the xhat, level and trend.
+```
+
+#### Forecasting Holt's exponential smoothing
+
+So, how our model forecast? Let us find the values that predict with the respective confidence interval.
+
+```R
+# Plotting the forecast of our Holt's exponential smoothing model.
+skirts.hes.fore <- forecast.HoltWinters(skirts.hes, h=19)
+plot.forecast(skirts.hes.fore)
+```
+
+## Lecture 8 - Holt-Winters Exponential Smoothing
+
+### Exponential smoothing with trend and seasonality
+
+There exists both an additive model and a multiplicative model for modelling the seasonality in the Holt-Winters Exponential Smoothing. We'll just be treating additive, but the multiplicative model is very similar other than just multiplying the seasonality factor instead of adding.
+
+Now we have three components that is part of our prediction, namely the:
+
+- Level - $\hat L_t$
+- Trend - $\hat T_t$
+- Seasonality - $\hat I_t$
+
+For our prediction we can just add all these three components to each-other:
+$$
+x_{t-1}^{TS} = \hat L_{t-1} + \hat T_{t-1} + \hat I_{t-s}
+$$
+(Notice that for seasonality, it is $\hat I_{t-s}$ and not $\hat I_{t-1}$. For the multiplicative, we multiply $\hat I_{t-s}$ to both terms instead of adding. Furthermore, note that $TS$ just stands for Trend+Seasonality.)
+
+New formula for $\hat L_t$ is very similar, but we correct for seasonality by subtracting $\hat I_{t-s}$ from $x_t^{TS}$. (For multiplicative seasonality, we have to divide 
+The formula for the trend, $\hat T_t$, is the same as in Holt's ES.
+Finally, the new formula for $\hat I_t$ is in a similar sense as the other formulas.
+
+Remember, if we want to exclude e.g. the trend, then we have to put `beta=False` instead of putting it to 0.
+
+There are various ways of initializing the initial values. We're not going to discuss them in detail, as their are some automatic choices which are already implemented.
+
+Finally, there are various optimization options to set constraints on the automatic hyper-parameter optimization, such as that all numbers should be non-negative.
+
+
+
+### R code
+
+#### Holt-Winters Exponential Smoothing
+
+With the following code, we can perform Holt-Winters with automatic parameter optimization with regards to $SSE$.
+
+```R
+# Performing Holt-Winters ES on the data, with additive seasonality.
+births.hw <- HoltWinters(births.ts, seasonal="additive")
+births.hw				# Showing the smoothing parameters.
+births.hw$fitted		# Running component estimates: xhat, trend, ...
+plot(births.hw$fitted)	# Plotting all of the components.
+plot(births.hw) 		# Plotting both the model and the actual values.
+births.hw$SSE			# Running SSE
+
+# In-Sample accuracy measurements
+with(births.hw, accuracy(fitted, x))
+
+# Plotting the forecast including the statistical intervals.
+plot.forecast(births.hw.fore)
+
+# Fingerprinting the residuals
+tsdisplay(births.hw.fore$residuals)
+Box.test(births.hw.fore$residuals, lag=20, type="Ljung-Box")
+
+# Look for the normality of the data.
+qqPlot(births.hw.fore$residuals)
+
+```
+
+Since alpha and gamma are very similar, we can put them equal to each other for reduced overfitting. Furthermore, notice that the residuals still have some statistical significant autocorrelation, perhaps there might be even another seasonality / cycle in the data.
+
+- Normality assumption is used for the *confidence interval* and the forecast.
 

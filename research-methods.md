@@ -43,6 +43,9 @@ There are many statistical traps when doing research. As an example, one can do 
 ## Lecture 2
 
 **Goal:** $\Pr[\text{My claim is true | observation}]$, or in another way: $1- \Pr[\underbrace{\text{opposite}}_{H_0} \text{ is true | observation}]$
+
+### Overview
+
 Source of materials for papers:
 
 - Books
@@ -66,6 +69,9 @@ Source of materials for papers:
 - Technical reports (e.g. arXiv)
 
 
+### Reliability of the various sources
+
+#### Journals and conference papers
 
 Journals: there are two experts that check your work over a long period of time. Then if it's accepted, there probably have to be some fixes via the review. Once this has been fixed, it needs to be fixed again.
 
@@ -75,12 +81,15 @@ Conference proceedings are too time constrained, as people only have little time
 
 If you can and found a conference proceedings, try to find a journal with the same topic as it might be better.
 
+#### Wikipedia
+
 Wikipedia
 
 - Pros: has many different users, as well as details and references 
 - Cons: There are some sketchy wikipedia pages and the page itself can be changed, so try to find the reference itself.
 
 
+#### Thesis and monographs
 
 Thesis:
 
@@ -94,17 +103,21 @@ Thesis:
 
 Monographs are like PhD thesis but without the professor reviewing it thoroughly. It might be reviewed but this can be not independent. Don't count too much on too much back and forth reviewing. 
 
+#### Books, lecture notes, and technical reports
+
 For books - Check for the 2nd edition or something like that.
 
 Lecture notes: sometimes helpful to get some nice figures and references. But might contain mistakes, can disappear so are not the most stable sources.
 
 Technical reports: contains more information than journals/proceedings, but it is not peer-reviewed, although in arXiv there are endorsements.
 
-
+#### Blog and youtube
 
 Blog & Youtube: Look at the author. If the author has a good track record, then it might be considered reliable. Otherwise don't trust it too much.
 
 - DBLP bibliography
+
+#### Proceedings, course work, and the rest 
 
 Workship "proceedings": look at the number of pages. If there are little pages (4), then there is probably no peer review, but if it was say 10 pages then it might've been properly peer-reviewed.
 
@@ -115,10 +128,96 @@ Course work, never rely on this because:
 
 Papers from different language: very unreliable if you cannot read the paper and verify what's in there.
 
+### Signs of reliable work
+
 Signs of reliable work
 
 1. References
 2. Detail
 3. Number of users
 4. TeX
-5. ​
+
+## Lecture 3 - Experiments
+
+> Small note
+>
+> This does not hold for all Computer Science projects, but just for the typical ones.
+>
+> An example of where this does *not* hold is a better worse-case bound for $k$-path algorithm. This does not follow the framework.
+
+### The Theory-Hypothesis-Experiments framework
+
+Most projects involve a mix of the following three elements:
+
+1. Hypothesis
+2. Theory
+3. Experiments
+
+In general, the order is as follows:
+Theory $\longrightarrow$ Hypothesis $\longrightarrow$ Experiments $\longrightarrow$ Theory $\longrightarrow \cdots$
+
+But where do we start? This actually can go in all three of these elements of the framework.
+
+### Experiments
+
+How do we perform an experiment, given an hypothesis? There are roughly four steps in creating an performing an experiment:
+
+1. Design
+2. Implementation
+3. Data Acquisition / execution
+4. Aggregation / analysis / evaluation
+
+From steps 2, 3, and 4, something can go wrong / overlooked so then we can go back to designing our experiment again. This usually happens.
+
+*Side note:* Do not underestimate the time it takes for the experiment.
+
+#### Useful tips for experiments
+
+It's useful to have a *baseline* to compare to. Usually, this should be the state-of-the-art solution. Preferably, we want the code for the state-of-the-art solution. 
+
+- The state-of-the-art solution needs to be *available* and takes time to get.
+
+Furthermore, we need to be able to collect and retrieve the *data*.
+
+- The data must also be *available*.
+- Think of stress test inputs or edge cases.
+- Random input. Distribution should be similar to the scenario we care about.
+
+##### Implementation tips
+
+The experiments should be **reproducible**, **feasible**, and should be *interesting*, *new*, and *relevant*.
+
+Another tip, suppose you have two implementations and you want to test there, then:
+
+1. When you generate random data, **save** that data for reproducibility.
+2. Use the **same data** for both the implementations.
+3. Think about what you want to measure. Worst-case query time or median query time?
+
+Think of the performance of the measurement. Only false positives? Or perhaps the *F-score*.
+
+##### Measurement tips
+
+- Check that your performance measure is the actual measure that you want to test and is not underwhelmed by other factors. 
+  Especially important for *usability* measurements. (Measure users, don't ask.)
+- Measure one thing at a time.
+
+##### Verification
+
+It's important to **verify** if the output of your algorithm is correct. 
+
+##### Questionnaire tips
+
+You want to make the response as high as possible to get a better representation.
+
+1. Make it short.
+2. No leading questions.
+3. No ambiguous or vague questions.
+4. Make sure that people can give any possible answer in case of non-grading.
+
+Also, sometimes people don't want to answer "delicate questions", such as someone's income. 
+
+It helps to tell what the questionnaire is used for to get a better response.
+
+Finally, design, implement and test your questionnaire to make sure that you get the answers that you want to have. :)
+
+​:dead:​​:do_not_litter:​​:bomb:​

@@ -1,3 +1,8 @@
+---
+typora-root-url: images
+typora-copy-images-to: images
+---
+
 # Process Algebra - Lectures
 
 [TOC]
@@ -14,6 +19,9 @@ $$
 \newcommand{\s}{\mathbf s}
 \newcommand{\a}{\mathbf a}
 \newcommand{\m}{\mathbf m}
+\newcommand{\C}{\mathcal C}
+\newcommand{\bspe}{BSP(A) + E}
+\newcommand{\biscl}{_{^/\bis}}
 $$
 
 ## Lecture 0 - What is process algebra?
@@ -278,7 +286,7 @@ Marc says: ":haircut::halloween::halt::japanese_ogre::eight_pointed_black_star:"
 
 ## Lecture 5
 
-### **Exercise 4.2.1**
+### Exercise 4.2.1
 
 Derive A2' from $MPT(A)$.
 $$
@@ -374,5 +382,206 @@ For every closed *BSP(A)*-term $p$ it holds that for every closed $BSP(A)$-term 
 
 
 
+## Lecture 6 - Start of recursion
 
+### Exercise 6.2.6
 
+$$
+\begin{align*}
+x+x  
+&= 1 \cdot x + 1 \cdot x & A9 \\
+&= (1+1) \cdot x & A4 \\
+&= 1 \cdot x & 1+1=1 \\
+&= x & A9
+\end{align*}
+$$
+
+Model: Axioms are valid for the algebra.
+Check validity for algebra? Do interpretation, and in case of a bisimilarity model check if the terms are bisimilar. Need soundness for this.
+
+Otherwise just use the axioms if you want to stay within the theory.
+
+Another tip: derive all functionality of transitions via the TDS, then we can draw the transition system.
+
+### Recursion
+
+Suppose we have a transition system with a loop. Can we express this behaviour in $BSP(A)$? No, as we want to have a finite transition system.
+
+General method for expressing transition systems:
+
+1. Label states with *process names*, also known as **recursion variables**.
+2. Associate behaviour of every recursion variable by means of an equation.
+   - For every recursion variable, specify its transition and termination behaviour.
+   - Example: $X = a.Y + c.Z$, $Y=b.X + 1$, and $Z = 0$.
+
+Formally: Let $\Sigma$ be a signature and let $V_R$ be a set of *recursion variables*.
+A **recursive equation** over $\Sigma$ and $V_R$ is an equation of the form of:
+$$
+X=t
+$$
+With $X \in V_R$ and $t$ a term over $\Sigma$ and $V_R$.
+Recursive equation $X=t$ *defines* $X$.
+
+**Recursive specification:** Set of *recursive equations* over $\Sigma$ and $V_R$ such that there is *exactly* one equation defining $X$ for each $X \in V_R$.
+
+#### Simplified representation of operational semantics
+
+So, how do we specify an operation over these new equations? 
+
+Let $E$ be a recursive specification over $\Sigma$ and $V_R$ including a defining equation $\forall X \in V_R:X = T_X$:
+$$
+\frac{t_X \overset a \longrightarrow t_X}{X \overset a \longrightarrow t_X} \qquad \frac{t_X \downarrow}{X \downarrow}
+$$
+
+#### Recursion - Bisimilarity
+
+Prove that $X \bis Z$, given that:
+$$
+\begin{align*}
+X &= a.X + Y\\
+Y &= a.Y \\
+Z &= a.Z
+\end{align*}
+$$
+Proof, see this picture:
+
+![img](/Bisimilarity for recursion.jpg)
+
+In the end, this is our relation: $R= \{ (X,Z) , (Y, Z) \}$
+
+#### Term model (Simplified)
+
+Let $E$ be a recursive specification over $BSP(A)$ and $V_R$.
+
+**Term algebra** for $BSP(A) + E$ is the algebra:
+$$
+\mathbb P(BSP(A) + E) = (\C(BSP(A) + E), +, (a.)_{a \in A}, 0, 1, (X)_{X \in V_R}
+$$
+
+---
+
+**Theorem - Soundness of recursion**
+
+The equational theory BSP(A)+E is a sound axiomatisation of $\mathbb P(BSP(A)+E)_{^/\bis}$.
+
+---
+
+Furthermore, bisimilarity is a congruence on $\mathbb P(BSP(A)+E)$ as it is in path format.
+
+Equivalence of recursion variables. Consider the recursive specification:
+$$
+\left\{X = a.X, \atop Y = a.a.Y \right\}
+$$
+There are bisimilar as we can create a relation $R$. However, we cannot proof this as we cannot get rid of the $X$ or $Y$ from the equation of the $X$ and $Y$ respectively.
+
+Conclusion, we need additional methods to reason about the equivalence of recursion variables. 
+(There won't be a full-fledged ground-complete axiomisation of $\mathbb P(BSP(A) + E)_{^\setminus \bis}$, but we'll get pretty close.)
+
+## Lecture 7 - Recursion
+
+### Solutions that are interpretations
+
+Let $E$ be a recursive specification over signature $\Sigma$ and set of variables $V_R$.
+Furthermore, let $\mathbb A$ be a $\Sigma$-algebra and $\iota$ the associated interpretation.
+
+**Solution:** Let $\kappa$ be an extension of $\iota$ with interpretations of the recursive variables in $V_R$ such that $\mathbb A, \kappa \vDash X=t_X$ for every equation in $E$. Then we call $\kappa(X)$ a solution of $X$ in $E$.
+
+> Reminder, $\iota$ is an interpretation of the terms of the theory:
+>
+> $+ \mapsto \mathbf +$
+> $a. \mapsto \mathbf{a.}$
+>
+> This changes what these variables do, as the left sides follow the axioms of our theory, whereas the right part works with the equivalence classes: $\mathbf{a.}[p]_{^/\bis} = [a.p]_{^/\bis}$.
+>
+> Then $\kappa$ would be an extension of $\iota$, adding more interpretations to the already existing interpretations, where an example would be:
+>
+> $\kappa:X \mapsto [a.1]_{^/\bis}$
+>
+> So how would we prove this?
+>
+> We know that $\mathbb P(BSP(A))_{^/\bis}, \kappa \vDash X = a.1.$
+> Interpreting the lefthandside gives: $\kappa(X) = [a.1]_{^/\bis}$
+> Interpreting the righthandside results in: $\kappa(a.1) = \iota(a.1) = [a.1]_{^/\bis}$
+
+What about recursion? Consider the recursive specification $E_2 = \{X=a.X\}$.
+Then $X \mapsto [a.X]_{^/\bis}$ is an **invalid** mapping, as we'll have troubles with the interpretation of $\kappa(X) = \mathbf {a.} \kappa(X)$. In fact, there is no solution in $\mathbb P(BSP(A))_{^/\bis}$.
+
+There is, however, a solution in $\mathbb P(\bspe_2)\biscl$, namely the interpretation of $\kappa:X \mapsto [X]\biscl$. Then we get a valid solution for the interpretation:
+$$
+\begin{align*}
+[X]\biscl &=\\
+\kappa(X)
+&\overset ? = \kappa(a.X) \\
+&= \mathbf{a.} \kappa(X) = \mathbf{a.} [X]\biscl = [a.X]\biscl 
+\end{align*}
+$$
+Now we just have to show that $X$ and $a.X$ are equivalence, as then also their bisimilarity classes modulo bisimilarity are equivalent. We just have to create a bisimulation relation $R$ and show that these are equivalent.
+
+**Exercise:** shows that $\kappa: X \mapsto [a.X]\biscl$ is also a valid interpretation.
+
+What about $E_3 = \{X=X\}$? Well, we can just put any interpretation for $\iota$, as the left and right side will always be interpreted the same. Thus, this recursive specification has *many solutions*.
+
+In fact, later on we will check whether an interpretation is unique to the model.
+
+### Equivalence of recursive values
+
+Consider this recursive specification again:
+$$
+\left\{X = a.X, \atop Y = a.a.Y \right\}
+$$
+We can argue that every solution of $X$ is a solution for $Y$ too.
+
+> Proof
+>
+> This is what we want to proof: $\mathbb A, \kappa \vDash X = a.X \implies \mathbb A,k \vDash Y = a.a.Y$
+>
+> From the lefthandside: $\kappa(X) = \kappa(a.X) = \mathbf{a.}\kappa(X)$. Thus, $\kappa(X) = \mathbf{a.a.}\kappa(X)$. [By transitivity]
+> From the righthandside: $\kappa(Y) = \kappa(a.a.Y) = \mathbf{a.a.}\kappa(Y)$
+>
+> Thus, if we define $\kappa(Y) := \kappa(X)$, then this $\kappa(X)$ is a solution for $Y$.
+
+Fun fact: this holds for *any* algebra.
+
+However, the other way around will not work.
+
+>Proof
+>
+>We will give a model of the theory in which we have a solution for $Y$ but not for $X$.
+>In bisimilarity it holds, so we should think of a different kind of model.
+>
+>Let $\mathbf A = \{0,1\}$. Let $0$ and $1$ be constants of this model.
+>Define $a.$ as follows: $a.1 = 0$ and $a.0 = 1$.
+>Define $+$ as follows: $0+0 = 0$, whereas $1+0 = 1$, $0 + 1 = 1$, and $1 + 1 = 1$.
+>Note that all axioms in $BSP(A)$ still holds.
+>
+>Now, let $\kappa(Y) = 1$ by definition. Then the interpretation of $\kappa(Y) = \kappa(a.a.Y)$ results in the same answer with the interpretation.
+>However, it does not hold for $\kappa(X) = \kappa(a.X)$, since the l.h.s. equals 1 and the r.h.s. equals 0.
+>
+>Furthermore, for $\kappa(Y) = 0$ it doesn't work as well. Therefore, we do not have a solution for $X$.
+
+Still, this result is not really desired, as we want to denote that these equations' interpretation are the same if we consider them as processes in modulo bisimilarity.
+
+Suppose we have a more general method that excludes some models, such that $X$ an $Y$ have both a *unique solution*, then we can conclude that $X$ and $Y$ denote the same solution. Thus, this means that these denote the same process, which is what we want.
+
+#### Guarded
+
+Our first goal is to exclude behaviour that are trivial and result in many solutions in any nontrivial model, such as $E=E$. This is called **guardedness**:
+
+An occurrence of a recursion variable $X$ in a closed term $s$ is **guarded** if it occurs in the scope of a prefix.
+
+- $\a.X$ $\leftarrow$ $X$ is guarded
+- $Y + b.X$ $\leftarrow$ $X$ is guarded, $Y$ is not guarded.
+
+A *term* $s$ is **completely guarded** if all its terms all guarded.
+A *recursive specification* is **completely guarded** if all the terms of its equations are guarded.
+A *recursive specification* is **guarded** if there exists a *completely guarded* recursive specification $F$ with $V_R (E) = V_R(F)$ and $BSP(A)+E \vdash X=t$ for all $X=t \in F$.
+
+The last requirement is for some recursive specification that in itself is not completely guarded, but has the same solution as a completely guarded specification.
+
+Exercise 5.5.2: 1. is guarded, 2. is not guarded.
+
+#### New recursive specification
+
+All this results in a new theory called **Recursive Specification Principle (RSP)**:
+
+$\Sigma$-algebra $\mathbb A$ satisfies RSP if every guarded recursive specification $E$ and some set $V_R$ of variables has *at most* one solution.
