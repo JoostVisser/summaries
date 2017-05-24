@@ -44,9 +44,21 @@ Furthermore, we will see a very good way to pick our estimator $f$ from $\F$ wit
 
 ### Chapters summary
 
-The first chapter lays out the setting of the whole book. All definitions such as empirical risk and data spaces are explained over there.
+Chapter 1 lays out the setting of the whole book. All definitions such as empirical risk and data spaces are explained over there.
 
-The second chapter ...
+Chapter 2 considers two settings, binary classification and regression and explores the loss function, the Bayes classifier, risk and empirical risk minimization here. There is actually a tradeoff for the risk in approximation and estimation error, which is explored in Chapter 3.
+
+Chapter 4 starts exploring a very limited setting where the data is created via a Lipschitz smooth function with noise. We derive bounds for the expected excess risk when we use piecewise constant functions as our classifier.
+
+Starting from the fifth chapter onwards, we consider a much larger variety of settings where $\P_{XY}$ can be any unkown distribution. In chapters 5, 6 and 7, we will derive PAC bounds for our estimation error, as well as how well the empirical risk minimizer performs.
+
+Chapter 8 extends this idea to countable infinite classes and introduces the idea of *complexity regularized risk model*, to pick our estimator as a combination of the empirical risk with some error term that depends on the complexity of our class. This is illustrated with the histogram classifier in Chapter 9.
+
+Chapter 10 shows that the *minimum penalized empirical risk predictor* actually balances a tradeoff between approximation and estimation error. Furthermore, this chapter shows a new and powerful type of classifier, the (dyadic) decision tree classifier. Finally, a computation of the excess risk is performed for both the histogram classifier and the decision tree classifier.
+
+In Chapter 11, we will consider uncountable infinite classes and derives PAC bounds and expected excess risk bounds using VC bounds. These are then applied to various classifiers and their bounds are shown.
+
+Finally, Chapter 12 considers the regression setting of piecewise smooth functions with noise (such as an image with noise), an extension of Chapter 4, and uses the dyadic decision tree classifier to bound the excess risk via penalized empirical risk minimization.
 
 ## Chapter 1 - Some definitions
 
@@ -571,7 +583,7 @@ The *concentration inequalities* of the previous chapter tells us how fast the a
 
 In this chapter, we will consider bounded loss functions. Using Hoeffding's inequality and the union bound, we can show that:
 $$
-\P\left(\forall f \in \F: \hat R_n(f) \geq R(f) + \epsilon\right) \geq 1 - |\F|e^{-2n\epsilon^2} \equiv 1 - \delta
+\P\left(\forall f \in \F: \hat R_n(f) \leq R(f) + \epsilon\right) \geq 1 - |\F|e^{-2n\epsilon^2} \equiv 1 - \delta
 $$
 After solving for $\delta$ and using the two-sided version of Hoeffding's inequality, we get that for $\delta > 0$:
 $$
@@ -594,7 +606,7 @@ $$
 \E[R(\hat f_n) -  \hat R_n (\tilde f)] < C(\F,n,\delta) + \delta
 $$
 
-- (The extra $\delta$ term comes from $\P(1-\Omega) \leq \delta$)
+- (The extra $\delta$ term comes from $\P(\bar \Omega) \leq \delta$)
 
 In particular, if we take $\delta = \frac 1 {\sqrt n}$, we get the following PAC-bound on the empirical risk:
 
@@ -627,25 +639,162 @@ With probability at least $1-\delta$.
 
 ### Histogram application
 
+Setting: $\Y= \{0, 1\}$ with 0/1 loss.
 
+**Histogram classifier:** Divide the feature space $\X$ into $m$ smaller sets ($\sqrt m \times \sqrt m$ grid). In each set, see which label occurs the most, then predict this label for these features.
 
+- Sort of a density-based classifier with majority vote.
 
+Formally, denote each partition set by $Q_j$, with $j \in \{1, \ldots, m\}$, where:
+$$
+\bigcup_{j=1}^m Q_j = \X \text{ and } \forall j \neq k: Q_j \cap Q_k = \emptyset
+$$
+In words: all $Q_j$ sets together should form $\X$ and they should not overlap. 
 
+Now we can also fomally define the class of classification rules:
+$$
+\F_m\left\{ f:\X \rightarrow \{0, 1\} : f(x) = \sum_{j=1}^m c_j \1 \{ x \in Q_j \}, c_j \in \{0, 1\} \right\}
+$$
 
+- It's $c_j$ for all inputs $x$ such that these are inside $Q_j$
+- Note that the size of this class is $2^m$, as $f(x)$ can be 0 or 1 for each bin $Q_j$.
+- The constants are decided by majority vote:
+$$
+\hat c_j = 
+\begin{cases}
+1 & \text{if } \frac{\sum_{i : X_i \in Q_j}Y_i}{\sum_{i : X_i \in Q_j}1} \geq 1/2 \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+Finally, if we apply [Proposition 7.2.1](#Expected-risk-bound-for-ERM) to this classifier, then we get the following bound on the expected estimation error:
+$$
+\E[R(\hat f_n)] -  \min_{f \in \F}  R(f) \leq  \sqrt \frac{m \log 2 + \frac 1 2 \log n + 2} n
+$$
+Here, we have a bound on the expected estimation error of the histogram classifier, regardless of the distribution of data! One can even show that $\F_m$ can approximate the Bayes' classifier if $m$ is large. More formally:
+
+---
+
+**Theorem 7.4.1 - Consistency of Histogram Classifiers**
+
+If $m \rightarrow \infty$ and $\frac n m \rightarrow \infty$ as $n \rightarrow \infty$, then the excess risk will go to 0 as $n \rightarrow \infty$ for any $\P_{XY}$.
+
+----
+
+In practice, one takes $m_n = \sqrt n$, but this is not necessarily a good idea. In [Chapter 8](#Application---Structural-Risk-Minimization) we will explore ways of automatically choosing $m$.
 
 ## Chapter 8 - Countably Infinite Model Spaces
 
-### Complexity Bounds
+### Using countable infinite class of models
+
+A major drawback of the theory of the last chapter is that they only hold for finite classes of models. In this chapter, we will consider $\F$ to be infinitely countable. (Countable means that we can still sum over it.)
+
+We will be creating a map $c(f)$ for all $f \in \F$ that satisfies a certain equation. If a map satisfies this equation, then we can calculate similar bounds as in Chapter 7. The equation is as follows:
+$$
+\sum_{f \in \F} e^{-c(f)} \leq 1
+$$
+The number $c(f)$ can be interpreted in various ways:
+
+1. Measure of complexity of $f$
+2. Negative log of prior probability of $f$
+3. Length of a codeword describing $f$
+
+We will be using the third interpretation most often, while keeping the first interpretation in the back of our mind.
+
+Why should we satisfy this mysterious formula? Well, after some math we have to apply the union bound. This way, we can rewrite Hoeffding's inequality to get a bound for countable infinite $\F$. Using this, we can state the following result:
+
+----
+
+**Proposition 8.0.1 - Bounded loss function for contable infinities**
+
+Let $\ell: \Y \times \Y \rightarrow [0,1]$ be a bounded loss function and suppose $\F$ is countable (but possibly $\infty$). Futhermore, suppose we have a map $c : \F \rightarrow \R$ satisfying:
+$$
+\sum_{f \in \F}e^{-c(f)} \leq 1
+$$
+Then, with probability at least $1-\delta$:
+$$
+\forall f \in \F:R(f) \leq \hat R_n(f) + \sqrt\frac{c(f) + \log \frac 1 \delta}{2n}
+$$
+
+----
+
+Suppose we pick our $\hat f_n$ that minimizes both the risk and the extra term, then we make our bound as low as possible. Futhermore, we add a penalty to complex models, as the $c(f)$ of complex models is larger. This will result in less overfitting! This is called *penalized empirical risk minimization* and we will be coming back to it later this chapter.
+
+### Getting our map
+
+But first, let us focus on getting our map $c(f)$. In particular, we will be focussing on the coding argument (3) to get a map, as we don't always have a proper prior probability distribution on $\F$ (2).
+
+Suppose we encode the elements of $\F$ using a binary alphabet, such that each $f \in \F$ gets a uniquely decoable binary codeword. Then, let $c(f) := $ codelength for $f$, so the codeword for $f$ is $c(f)$ bits long. If this is a **prefix** code, then the equality above is automatically satisfied!
+
+**Prefix code:** A code is called a prefix code or *instantaneous code* if no codeword is a prefix of any other codeword.
+
+- This basically means that we can instantly identify which $f$ the code belongs when reading from left to right.
+- Each codeword is *self-punctuating*, since we know which $c(f)$ we're reading, thus we know when it ends.
+- If one codeword is inside the beginning of another codeword (e.g. 11 and 1100) then these are not prefix code, as we don't know which code we're reading.
+
+### The Kraft Inequality
+
+If we have found a prefix code for $\F$, then we can use the following useful theory:
+
+----
+
+**Theorem 8.2.1 - The Kraft Inequality** 
+
+For any binary prefix code, the codeword lengths $c_1, c_2, \ldots$ satisfy:
+$$
+\sum_{i=1}^\infty 2^{-c_i} \leq 1
+$$
 
 -----
 
-**Theorem 6 - Complexity Regularized Model Selection**
+We can use the Kraft Inequality to satisfy our map requirement:
+$$
+\sum_{i=1}^n e^{-c(f) \log 2} = \sum_{i=1}^n 2^{-c(f)}\leq 1
+$$
+And this condition can be used for our bound (with a factor of $\log 2$ extra):
+$$
+\forall f \in \F: R(f) \leq \hat R_n(f) + \sqrt\frac{c(f) \log 2 + \log \frac 1 \delta }{2n}
+$$
+
+### Application - Structural Risk Minimization
+
+Now, we are going to improve on our histogram classifier of [Chapter 7](#Histogram-application). In particular, we will derive bounds for all $\bigcup_{k \geq 1} \F_k$ instead of a single $\F_k$. We can also use this fact to get a $k$ that minimizes the bound, to automatically get a semi-optimal number of bins $m$.
+
+We'll be in the same setting as [Chapter 7](#Histogram-application). Let $\F_1, \F_2, \ldots$ be a sequence of finite classes of candidate models. We can design a prefix code for all elements in $\F$ as follows:
+
+1. Use the code 0, 10, 110, 1110 to encode the subscript $i$ in $\F_i$, so we know which $\F_i$ we're talking about.
+2. Use a binary codeword of length $\log_2 |\F|$ to uniquely encode all elements in $\F$.
+
+This is not necessarily the best codeword, but it is good enough for us.
+
+In terms of histograms, we would have:
+
+1. $k$ bits to indicate the number of bins, i.e. which $\F_k$ we'll use.
+2. Binary codword of length $\log_2 2^k = k$ bits to indicate which bin we're in.
+
+In total, we have $2k$ bits. When using this with the bound of the previous paragraph, we get with probability at least $1-\delta$:
+$$
+\forall f \in \F: R(f) \leq \hat R_n(f) + \sqrt\frac{2k \log 2 + \log \frac 1 \delta }{2n}
+$$
+Note that this is only a factor of $\sqrt 2$ worse than the bound of [Chapter 7](#Histogram-application), while here we consider all possible $k$ instead of a single $k$! We can even use this as a guide for selecting the number of bins based on the data, by minimizing the right-hand-side:
+$$
+\hat f_n = \argmin_{f \in \F} \hat R_n(f) + \sqrt\frac{2k_f\log 2 + \log \frac 1 n}{2n}
+$$
+When selecting this $\hat f_n$, we will automatically get the ideal number of bins $m$. This idea will be further elaborated upon in [Chapter 9](#Chapter-9---The-Histogram-Classifier-revisited).
+
+### Complexity Bounds
+
+The bounds we derived give a good idea on how to pick a good model from $\F$. What if we use this bound to actually select our estimator $\hat f_n$? This, in fact, is a pretty good idea, supported by the following theorem:
+
+-----
+
+**Theorem 8.3.1 - Complexity Regularized Model Selection**
 
 Let $\mathcal F$ be a *countable* collection of models and assign a real number $c(f)$ to each $f \in \mathcal F$ such that:
 $$
 \sum_{f \in \mathcal F} e^{-c(f)} \leq 1
 $$
-Let us define the minimum complexity regularized model (i.e. the ERM with regularization), this is also called the *minimum penalized empirical risk predictor*:
+Let us define the *minimum complexity regularized model* (i.e. the ERM with regularization), this is also called the *minimum penalized empirical risk predictor*:
 $$
 \hat f_n = \arg \min_{f \in \mathcal F} \left\{  \hat R_n(f)+ \sqrt\frac{c(f) + \frac 1 2 \log n}{2n} \right\}
 $$
@@ -656,25 +805,13 @@ $$
 
 ------
 
-This theorem is quite useful, as it lets us bound the expected risk and thererfore gives us an idea of what a good estimator is for $\hat f_n$.
-
-This estimator also tells us that the performance (risk) of $\hat f_n​$ performs almost as well as the best possible prediction rule $\tilde f_n​$.
-
-### Histogram example
-
-The expected value of our empirical risk when choosing the number of bins automatically performs almost also as good as the best $k$ (number of bins) possible! Since:
-$$
-\mathbb E[R(\hat f _n)] \leq \inf_{k \in \mathbb N} \left\{\min_{f \in \mathcal F_k} R(f) + \sqrt\frac{(k+k^d) \log 2 + \frac 1 2 \log n}{2n} + \frac 1 {\sqrt n}  \right\}
-$$
-
-- $\hat f_n = \hat f_n^{(\hat {k}_n)}$ - Our best $k$ we could automatically determine depending on the data using the empricial risk minimizer where the $\hat k_n$ is found by minimizing:
-  -  $$\hat k_n = \arg\min_{k\in\mathbb N}$$ ERM of each subclass + penalized term.
+This estimator is result of taking $\delta = \frac 1 {\sqrt n}$, but other choices for $\delta$ are possible. Now, we can actually  bound our expected risk and since the result holds for all $f \in \F$, we can even bound the *expected estimation error* this way.
 
 ## Chapter 9 - The Histogram Classifier revisited
 
 ### Complexity regularization
 
-Here, instead of a coding argument, we use an explicit map for $c(f)$, namely:
+Normally, we would use a coding argument for finding a satisfying $c(f)$. Here, instead of a coding argument, we use an explicit map for $c(f)$, namely:
 $$
 c(f) = \log(m_f) + \log(m_f + 1) + m_f\log(2)
 $$
@@ -707,7 +844,7 @@ This often works very well in practice, but is not a silver bullet and an answer
 
 ### Excess risk of the penalized empirical risk minimization
 
-Suppose we grab the [Complexity Regularization Bounds](#Complexity-Regularization-Bounds) and rewrite it in terms of the excess risk $\E[R(\hat f_n)] - R^*$, where $R^*$ is the Bayes risk. Then we get the following formula:
+Suppose we grab the [Complexity Regularization Bounds](#Complexity-Bounds) and rewrite it in terms of the excess risk $\E[R(\hat f_n)] - R^*$, where $R^*$ is the Bayes risk. Then we get the following formula:
 $$
 \E[R(\hat f_n)] - R^* \leq \inf_{f \in \F}  \left\{  \underbrace{R(f) - R^*}_{\texttt{approximation error}}+ \underbrace{\sqrt\frac{c(f) + \frac 1 2 \log n}{2n} + \frac 1 {\sqrt n}}_{\texttt{bound on estimation error}}\right\}
 $$
@@ -723,7 +860,7 @@ Suppose we have a universe $\X = [0, 1]^2$, which you can idenity as a square. Y
 
 The boundary of $G^*$ is called the *Bayes Decision Boundary* and is given by $\{x:\eta(x) = \frac 1 2\}$.
 
-The problem with the histogram classifier is that it tries to estimate $\eta(x)$ everywhere and thesholding the estimate at level $\frac 1 2$ (i.e. it looks for the Bayes Decision Boundary everywhere).
+The problem with the histogram classifier is that it tries to estimate $\eta(x)$ everywhere in $\X$ and thesholding the estimate at level $\frac 1 2$ (i.e. it looks for the Bayes Decision Boundary everywhere). This will result in overfitting.
 
 ### Binary classification trees
 
@@ -763,7 +900,7 @@ So, now we have a bound on the *excess risk* of the histogram classifier and the
 
 #### Box-Counting assumption
 
-To compute the excess risk, we first need to compure the approximation error $(R(f)-R^*)$. For this, we need to make an assumption about the distribution $\P_{X}$, namely the **Box-Counting assumption**. 
+To compute the excess risk, we first need to compute the approximation error $(R(f)-R^*)$. For this, we need to make an assumption about the distribution $\P_{X}$, namely the **Box-Counting assumption**. 
 
 The *Box-Counting assumption* is essentially stating that the overall length of the Bayes'  decision boundary is finite (i.e. no fractals). More specifically, a length of at most $\sqrt 2 C$. 
 
@@ -959,9 +1096,12 @@ $$
 $$
 So, similar to [Chapter 8](#Complexity-Bounds), we can go for the *minimum penalized empirical risk predictor* by taking a combination of the error on the data set and a regularization term. After some more mathematics, taking $\delta = \frac 1 {\sqrt{n+1}}$, and applying the VC dimension of trees, we get the following bound for decision trees:
 $$
-\E[R(\hat f_n)] - R^* \leq \inf_k \left\{\inf_{f \in \mathcal F_k} \left\{R(f) - R^* + 8 \sqrt\frac{(k(d+1)+1/2)\log(n+1)+3+k\log 2)}{2n} \right\}\right\} + \frac 1 {\sqrt{n+1}}
+\begin{align*}
+&\E[R(\hat f_n)] - R^* \\
+&\leq \inf_k \left\{\inf_{f \in \mathcal F_k} \left\{R(f) - R^* + 8 \sqrt\frac{(k(d+1)+1/2)\log(n+1)+3+k\log 2)}{2n} \right\}\right\} + \frac 1 {\sqrt{n+1}}
+\end{align*}
 $$
 If you compare this with the bounds of [Chapter 9](#Dyadic-Decision-Tree), we get a bound with essentially the same form, although now we're condiering a much richer class of classification rules. Compared to recursive dyadic partitions, we have an uncountable number of trees with $k$ cells here.
 
-## Chapter 12 - Denoising of Piecewise Smooth Functions
+
 
