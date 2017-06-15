@@ -6,7 +6,7 @@
 
 ## Lecture 1
 
-### Goal of this  course
+### Goal of this course
 
 Goal of this course is to predict the future with forecasting. We'll learn some tools to do this, but we don't want this to be a black box:
 
@@ -173,7 +173,7 @@ kings.pacf <- pacf(kings.ts)
 
 ```R
 # Show the normal, the autocorrelation and the partial autocorrelation plots.
-forecast::tsdisplay(kings.ts)
+tsdisplay(kings.ts)
 ```
 
 #### Other useful plots
@@ -605,7 +605,7 @@ We use HoltWinters with it, but we ignore the beta and the gamma. Our alpha is t
 
 ```R
 # Applying simple exponential smoothing on the rain time-series.
-rain.ses1 = HoltWinters(rain.ts, alpha=0.2, beta=False, gamma=False)
+rain.ses1 = HoltWinters(rain.ts, alpha=0.2, beta=FALSE, gamma=FALSE)
 name(rain.ses1) 		# Available information
 rain.ses1 				# All parameters
 rain.ses1$fitted 		# Data points, notice that xhat = level.
@@ -747,7 +747,7 @@ If we want to find an optimal value for $\alpha$, then it can be automatically d
 
 ```R
 # Value with optimal alpha for minimizing the penalized empirical risk
-rain.ses2 <- HoltWinters(rain.ts, beta=False, gamma=False)
+rain.ses2 <- HoltWinters(rain.ts, beta=FALSE, gamma=FALSE)
 rain.ses2		# Check the smoothing parameters
 ```
 
@@ -759,7 +759,7 @@ Here is the automatic implementation of the Holt's exponential smoothing.
 
 ```R
 # Perform Holt's exponential smoothing to obtain a model for the skirts dataset.
-skirts.hes <- HoltWinters(x=skirts.ts, gamma=False)
+skirts.hes <- HoltWinters(x=skirts.ts, gamma=FALSE)
 skirts.hes 					# Check the smoothing parameters
 plot(skirts.hes$fitted) 	# Plotting the xhat, level and trend.
 ```
@@ -796,7 +796,7 @@ New formula for $\hat L_t$ is very similar, but we correct for seasonality by su
 The formula for the trend, $\hat T_t$, is the same as in Holt's ES.
 Finally, the new formula for $\hat I_t$ is in a similar sense as the other formulas.
 
-Remember, if we want to exclude e.g. the trend, then we have to put `beta=False` instead of putting it to 0.
+Remember, if we want to exclude e.g. the trend, then we have to put `beta=FALSE` instead of putting it to 0.
 
 There are various ways of initializing the initial values. We're not going to discuss them in detail, as their are some automatic choices which are already implemented.
 
@@ -876,3 +876,532 @@ plot.forecast(kings.ets)
 tsdisplay(kings.ets.fore$residuals)
 Box.test(kings.ets.fore$residuals, lag=10, type="Ljung-Box")
 ```
+## Lecture 8 - Box-Jenkins ARIMA Models
+
+### Box-Jenkins ARIMA models
+
+The goal of these models is to find a theoretical finger print of the data. We want to figure out which Stochastic Processes or *models* we want to use for the data. 
+
+Similar to the Exponential Smoothing, we will consider three different models:
+
+1. ARIMA Models for Stationary Series
+   - No tend nor seasonality
+2. ARIMA Model for Non-Stationary Series
+   - With trend but no seasonality
+3. SARIMA Models for Series with Seasonality
+   - With both seasonality and trend
+
+### Models
+
+How do we model the data we have and predict? Well, there are various models we can follow, but the general flow goes as follows.
+
+1. Research Question - What do we want to do. Such as, how hot is it in Eindhoven?
+2. Experiment - Obtain data via experiments. Examples:
+   - Obtain temperatures for $N$ selected months. 
+   - Obtain monthly temperatures for $N$ selected years.
+   - Obtain monthly temperatures for $N$ consecutive years.
+3. Create a stochastic model from the results:
+   - Perhaps the temperature follows a normality with certain $\mu$ and $\sigma$.
+   - Perhaps each month has its own factors - stochasts - where the data depends on this.
+   - Perhaps there exists some individual stochasts where the model depends on these, depending on time.
+
+Right now, we're going to look at the different formal models and their respective fingerprints. In the end, we will compare it to the actual fingerprint and combine them to get the fingerprint of the model that as best looks at the fingerprint of the actual data.
+
+### Stochastic Processes
+
+Consider a *stochastic process*. Stochastic means that the outcome of this process is random, so there can be *multiple realizations* of one stochastic process.
+
+- However, with time-series we often know just **a single** realization.
+
+Consider a stochastic process in the form of $X_{\{t\}} = \{\cdots, X_{t_1}, \dots, X_{t_2}, \cdots\}$. There are various statistics that we can consider of such stochastic process:
+
+- Mean: $\mu_T = E(X_T)$
+- Variance: $\sigma_t^2 = Var(X_t)$.
+- Autocovariance: $\gamma(t_1, t_2) = E([X_{t_1} - \mu_{t_1}]\cdot[X_{t_2} - \mu_{t_2}])$
+
+We will now consider the most basic stochastic processes.
+
+#### Strictly Stationary Process
+
+In this process, shifting the time origin by any $\tau$ has no effect on the distribution, as it will always remain the same. Consequences for the statistics:
+
+1. $E(X_t) = \mu$
+2. $Var(X_t) = \sigma^2$
+3. Autocovariance: $\gamma(t_1, t_2) = \gamma(\tau) = cov(X_t, X_{t+\tau})$.
+4. Autocorrelation: $\frac{\gamma(\tau)}{\gamma(0)}$ 
+
+#### Weakly stationary process
+
+#### Purely Random Process - White noise
+
+Our building block is that each stochast, the random variable over time, i.e. each  follows a normality and is independent of the rest of the stochasts. 
+
+1. $\mathbb E[Z_t] = 0$, as we assume it's the sum of independent random variables.
+2. $\mathbb  V[Z_t] = \sigma^2$.
+
+### R-code
+
+#### Simulating white noise
+
+```R
+# Simulating white noise with ARIMA
+ts.sim <- arima.sim(list(order=c(0,0,0)), n=100)
+plot(ts.sim)
+```
+
+## Lecture 9 - ARMA explained
+
+### Moving Average Process - MA(q)
+
+$X_t =Z_t + \beta_1 Z_{t-1} + \cdots + \beta_q Z_{t-q} = (1 + b_1 B + \ldots + B^q) \cdot Z_t = \theta_q(B) \cdot Z_t$.
+
+- B is the backshift operator
+- $\theta_q(B)$ is a shorthand of doing the backshift operator once, twice, ..., $q$ times. 
+
+So basically, it's a moving average of $Z_t$
+
+Let us consider the following example, where the current time depends on:
+Random noise at time stamp $t$ + Random noise at time stamp $t-1$.
+
+$X_t = Z_t + 0.1 Z_{t-1}$
+
+- $\mathbb E[X_t] = \mathbb E[Z_t + 0.1Z_{t-1}] = \mathbb E[Z_t] + 0.1 \mathbb E[Z_{t-1}] = 0 + 0 = 0$
+  $$
+  \begin{align*}
+  Cov(X_t, X_{t+k}) 
+  &= \mathbb E(X_t \cdot X_{t+k}) - \overbrace{\mathbb E(X_t) \cdot E(X_{t+k})}^{0} \\
+  &= \mathbb E[(Z_t + 0.1 Z_{t-1})(Z_{t+k} + 0.1 Z_{t+k-1})] \\
+  &= \mathbb E [
+  \underbrace{Z_t Z_{t+k}}_{\begin{aligned}K \neq 0 &\rightarrow 0 \\ K = 0 &\rightarrow \mathbb V(Z_t)\end{aligned}} 
+  + \underbrace{0.1 Z_t Z_{t+k-1}}_{\begin{aligned}K \neq 1 &\rightarrow 0 \\ K = 1 &\rightarrow 0.1 \mathbb V(Z_t)\end{aligned}} 
+  + \underbrace{0.1 Z_{t-1}Z_{t-k}}_{\begin{aligned}K \neq -1 &\rightarrow 0 \\ K = -1 &\rightarrow 0.1 \mathbb V(Z_t)\end{aligned}} 
+  + \underbrace{0.01 Z_{t-1} Z_{t+k-1}}_{\begin{aligned}K \neq 0 &\rightarrow 0 \\ K = 0 &\rightarrow 0.01\mathbb V(Z_t)\end{aligned}} ]
+  \end{align*}
+  $$
+
+- If we divide everything by the variance, then we get the correlation $\rho$.
+
+
+
+However, the autocorrelation is **not** a unique fingerprint of the data! There are, in fact, two different models with the same fingerprint:
+$$
+X_t = Z_t + 0.1 Z_{t-1} \qquad \text{and} \qquad X_t = Z_t + 10 Z_{t-1}
+$$
+The left one is what we want, the right one is exploding. How do we check it?
+
+Well, we can check the polynomial function with the backshift operator that we used to get to $X_t$ from $Z_t$. For example, in this sense, we have on the left part $1 + 0.1x = 0$ and on the right part $1 + 10x = 0$. We can solve for $x$ and look at the unit circle (in real and imaginary). 
+If it's outside the unit circle then we're save, but if it's inside the unit circle then we have a case of an exploding pattern.
+
+**Condition for invertibility:** $\phi_p(B) \neq 0$. ($\sim$ Outside of the complex unit circle.)
+
+#### Intermezzo
+
+Witte noise: Elke tijdsunit heeft een random variable, een stochast, achter zich wat de value bepaald. We nemen aan dat deze normality volgt met $\mu = 0$ en variance is $\sigma^2$.
+
+Now with the moving average model is just a model where we think that the current value is dependent on the stochastic value of the previous values.
+
+Correlation: similar to ACF, just change the diagram with $k$ timesteps and see if there still is a correlation.
+
+###  Autoregressive Process - AR(p)
+
+Let's try another type of model! 
+We're going to predict our current $X_t$ in relation to $Z_t$, but is more or less resembling the levels which it resembles in the past.
+$$
+X_t = \alpha_1 X_{t-1} + \cdots + \alpha_p X_{t-p} + Z_t
+$$
+*Interpretation:* Present = Moving Average of Past Values + Current Disturbance
+
+Notation: $B \cdot X_t = X_{t-1}$
+
+$\phi_p(B) \cdot X_t = Z_t$, with $\phi_p(B) 1 - \alpha_1 B - \cdots - \alpha_p B^p$, where the minus signs comes from moving the $X_{t-1}, \ldots, X_{t-p}$ to the left side.
+
+Here, it actually is quite similar to MA(q), but the other way around!
+Considering $AR(1)$, we actually get $X_t = Z_t + \alpha Z_{t-1} + \alpha^2 Z_{t-2} + \cdots$. 
+Frankly, it looks like $AR (1) \leftrightarrows MA(\infty)$.
+
+Similarly, we want that this model is not exploding. In this case, it should hold that $-1 < \alpha < 1$.
+
+Statistics:
+
+- $\mathbb E(X_t) = 0$
+- $\mathbb V(X_t) = \frac{\sigma^2_Z}{1-\alpha}$
+- $\rho(k)=$ some infinite series. We can also use the Yule-Walker equation for an iterative solution.
+
+In fact, the autocorrelation keeps reducing. So the autocorrelation 
+
+#### Example
+
+Consider the following example: $X_t = 0.8 X_{t-1} + Z_t$.
+
+Then the current value is quite related to the previous value. So this means that it won't fluctuate as much but instead will be lower-frequency wave.
+
+If we do the reverse, $X_t = -0.8 X_{t-1} + Z_t$, then it's actually the reversed! So this means that it will take the negative of the previous value, and thus will change between positive and negative really fast.
+
+*Fun tip:* For the auto-regressive model, it has a direct relation to the partial autocorrelation function instead of the ACF, as it has a chaining effect.
+
+**Condition for stationary:** $\phi_p(B) \neq 0$. ($\sim$ Outside of the complex unit circle.)
+
+### Autoregressive Moving Average Process - ARMA(p,q)
+
+How about combining both of the models into a single model?
+Then we have a more flexible model that can model both situations.
+
+*Interpretation:* Process is influenced both by *levels* and by *disturbances* from the past.
+
+$X_t = (\alpha_1 X_{t-1} + \cdots + \alpha_p X_{t-p}) + (Z_t + \beta_1 Z_{t-1} + \cdots + \beta_q X_{t-q} )$
+
+Operator notation: $\phi_p (B) \cdot X_t = \theta_q (B) \cdot Z_t$
+
+- $\phi_p(B) = 1-\alpha_1B - \cdots - \alpha_p B^p$
+- $\theta_q(B) = 1 + \beta_1  B + \cdots + \beta_qB^q$
+
+#### Seasonality
+
+What if we add trend and seasonality by adding time steps of 12?
+
+### R-code
+
+#### Moving average simulations
+
+
+
+#### Theoretical fingerprint
+
+```R
+ACF.theor <- ARMAacf(ma=c(0
+```
+
+
+
+## Lecture 10 - Fitting the model with the realization
+
+The goal is to make a connection with the finger print and the theoretical finger print.
+
+### Stationary models
+
+Our model is a standard ARIMA model: $\phi_p(B) X_t = \theta_q(B)Z_t$.
+
+These are the different stages of the ARIMA modelling procedure:
+
+1. Stage 1 - Model Identification
+   - Find the type + order of the adequate stochaastic process, namely the $p$ and $q$.
+2. Stage 2 - Model Estimation
+   - There are default packages for this in $R$, but it's for estimating the $\alpha$ and $\beta$ values.
+3. Stage 3 - Model Verification
+4. Stage 4 - Model Validation
+   - Use independent data to validate the model.
+5. Stage 5 - Model Use
+
+#### Stage 1 - Model Identification
+
+Find the type + order of an adequate stochastic process:
+
+- Moving average model: 
+  - Suppose we have $MA(2) \rightarrow X_t = z_t - 0.1 Z_{t-1} + 0.04Z_{t-2}$
+    Autocorrelation: 1 high value, 2 high value, rest suddenly insign. - "Sudden drop"
+    Partial autocorrelation: "Decaying"
+- Autoregressive model:
+  - Partial autocorrelation function: "Sudden drop"
+    Autocorrelation function: "Decaying"
+
+Remember that an autoregressive model can be changed to a moving average model. Together with noise, it could be that we have to use both models.
+
+- ARMA:
+  - Mix of both of them.
+
+#### Stage 2 - Model Estimation
+
+We want to estimate the parameters.
+
+AR(p) model:
+
+- Remove the average to all values.
+- We can do a standard regression techniques, such as least squares estimation.
+
+MA(q) model:
+
+- Slightly more advanced to get a correct estimation.There are numerical methods needed.
+- Maximum Likelihood Estimator.
+
+We can test if the parameters are *significantly zero*, rule of thumb: $ N > 50$. Testing the $\alpha$ and $\beta$.
+
+### Stationary series without trend
+
+#### Volcanic dust example
+
+##### Identification and estimation
+
+We first look for a sudden drop or a decaying.
+We can go for a really high order, say order of 22. But this results in a lot of coefficients, so we are first going to look at the first values of the ACF.
+
+Decaying behaviour in ACF? $\rightarrow$ Perhaps $AR(3)$.
+Sudden drop in PACF? $\rightarrow$ We have some idea that it might be an autoregressive model.
+The sudden drops happens at timelag 2, so perhaps it is an $AR(2)$ model.
+
+Or maybe we can consider $MA(3)$ as there is some sort of a sudden drop at timelag 3 at the ACF.
+Perhaps even $ARMA(1,1)$?
+
+With $MA(3)$ we assume that:
+$$
+AR(3) \vdash X_t - \mu = (1 + \beta_1 B + \beta_2 B^2+ \beta_3 B^3) \cdot Z_t
+$$
+Performing it with the `Arima` command in R results in the following coefficients:
+
+- $\mu = 57.5$
+- $\beta_1 = 0.7438$
+- $\beta_2 = 0.45$
+- $\beta_3 = 0.19$
+
+Futhermore, we get the following values: $AIC$ is the Aki iki index that has some in-built penalty for more complicated formulas.
+
+Finally, with the forecast, we notice that the confidence band go into the negative numbers, so we can comment on this model.
+
+Furthermore, the arma gives a resulting standard error (s.e.). If the ratio of $\bar x - \mu$ and the standard error ($\frac s {\sqrt n}$) is greater than 2, then it's probably significant. It's kind of the signal to noise ratio. In this case, you notice that $\frac {57.5} {7.6}$ is much greater than 2, so the third order of the moving average is needed. Want a $p$-value? Then you have to do some more effort.
+
+Moreover, the $AR(2)$ model has the following formula:
+$$
+\tilde X_t = 0.75 \tilde X_{t-1} - 0.12 \tilde X_{t-2} + Z_t
+$$
+Finally, we can do the $ARMA(1, 1)$ model:
+$$
+\tilde X_t = 0.58 \tilde X_{t-1} + Z_t + 0.12 Z_{t-1}
+$$
+
+##### Validation
+
+In principle, we're going to predict in-sample values form the model and compare them with the actual values. This will be done with the one-step ahead prediction, i.e. $\hat x_t(1)$.
+
+(Idea behind the prediction: in principle, you can predict the $Z_t$ from the $X_t$. With these $Z_t$ we can generate the $X_t$ again.)
+
+There are various [Goodness-of-Fit](#Goodness-of-Fit-Measures) measures that we can use, although the information criteria can be better, namely AIC and BIC, as they penalize $k$ $\leftarrow$ The number of coefficients in the model.
+In general: BIC for long series, $AIC_c$ for the relatively short series. The corrected version is slightly better.
+
+Still some significance in the ACF of residuals? Then we can use the patterns which gives us the signal to be more careful in the order of my model.
+
+In total, we can gather all AIC values and have *multiple* good candidate models that we can use.
+
+> There are automated tests, but it only focusses on a single value, namely AIC for example.
+> It doesn't look at the forecast, not at the residuals.
+>
+> - There is not a "single best model"
+> - Don't forget to take into account to context.
+
+### Code
+
+```R
+# Performing an MA(3) model on the Volcano timeseries.
+volcano.arma.0.3 <- Arima(volcano.ts, order=c(0,0,3))
+# c(x, y, z) --> AR(x), finite differencing of y and MA(z).
+# Showsing all paarameters and variables.
+volcano.arma.0.3
+
+# Forecasts
+volcano.arma.0.3.fore <- forecast(volcano.arma.0.3, h=19)
+plot.forecast(volcano.arma.0.3.fore)
+
+# Goodness-of-fit tests
+accuracy(volcano.arma.0.3)
+
+# Residuals fingerprint - In-sample diagnostics
+tsdiag(volcano.arma.0.3)
+tsdisplay(volcano.arma.0.3.fore$residuals)
+
+# Performing the AR(2) model.
+volcano.arma.2.0 <- Arima(volcano.ts, order=c(2,0,0))
+
+# Performing automatic model selection
+volcano.arma <- auto.arima(volcano.ts)
+volcano.arma.fore <- forecast(volcano.arma, h=19)
+```
+
+## Lecture 11 - Series with trend and seasonality
+
+### Fitting a model with trend
+
+#### skirts.ts
+
+For the skirts, there are two possibilities: 
+
+- There might be just a trend
+- There might be a slow cycle
+
+By the way: $AR(1) \leftrightarrows ARIMA(0, 1, 0)$, since they both have one backshift operator and a similar formula, when the parameter of the $AR(1)$ is close to 1.
+
+We'll look at the ACF of `skirts.ts`, `skirts.d1`, and `skirts.d2`. Notice that when we plotted the finite diffencing, we noticed that there still was some trend in `skirts.d1`.
+
+When we look at the `tsdisplay(skirts.d1)`, then we can notice the following thing: 
+
+- There is a drop at time lag 4, so there might be some sort of Moving Average, but this cannot be detected in the partial auto correlation.
+- Perhaps some AutoRegressive part is in here.
+
+When we look at `tsdisplay(skirts.d2)`, we notice that there is not really any trend in there anymore.
+
+- Perhaps there is some $AR(1)$ and $MA(1)$, as there is a sudden drop at timelag 1.
+- However, there is also a sudden time lag 5 of the ACF and timelag 5, 10 and perhaps even 15.
+  Any seasonality? Perhaps extend for cyclic behaviour.
+
+When we look at the results `Arima(1, 2, 1)`, we notice that the moving average is really small and the autocorrelation is quite small as well.
+
+- We'll remove the `MA(1)` part as the coefficients is really slow.
+  AR(1) is also quite low, but might be significant after recalculation.
+- We want the model to be as simple as it can be.
+
+Then we perform the model forecast.
+
+We could now check the residuals and perform e.g. the Ljung-box test.
+
+*Auto-ARIMA* results in the 2 times finite differencing and auto-regressive order 1. 
+
+> The difference between autoregression and finite differencing.
+>
+> Autoregressive is actually related quite a lot to finite differencing, as shown in the formulas.
+> $$
+> (1 - \alpha_1\beta)(1 - \beta)^2 X_t = Z_t \\ \equiv (1-\tilde \alpha_1 B - \tilde \alpha_2 B^2 - \tilde \alpha_3 B^3)X_t = Z_t
+> $$
+> So we could also do AR(3, 0, 0) and this would also be a nice fit. However, this results in more parameters, and more overfitting.
+>
+> That's why we perform finite differencing first, because we know that there is some sort of trend and therefore we could already get some information out of the model. 
+>
+> - A factored polynomial is always preferred over a high-level model that is not factored, as we already know some solutions / coefficients that are fitted.
+>
+> That's why we always perform finite differencing first before applying the autoregressive model. Less parameters and less complexity.
+>
+> (Another reason is that we want to find the solutions that should be on or outside the unit circle. However, the finite differencing are an edge case that are *exactly* on the unit circle. Using finite differencing helps with this edge case.)
+
+### Timeseries with trend and seasonality
+
+#### Births.ts
+
+Realize that seasonal differencing fits in the type of behaviour by $(1-B^s)X_t$.
+It might also be that with an additive series that the order of $s$ is lower than a multiplicative series.
+
+Dominant trend at seasonal at timelag 12.
+
+Finite differencing once and seasonal differencing one results in a series that's kinda stationary.
+
+Looking at the `tsdisplay(births.d1.sd1)`, then we notice that it could be:
+
+- MA(3) and AR(1), but there are also possibilities.
+- In the autocorrelation we have a sudden drop at 12, whereas at 12, 24 and perhaps 36 in the PACF it looks like a decaying behaviour. That's why we can look at the seasonal $MA(1)$.
+- This results in $SARIMA(2, 1, 3)(0, 1, 1)_{12}$.
+
+Looking at another SARIMA model, namely $SARIMA(2, 1, 3)(0, 1, 1)_{12}$ results in significant coefficients except for $AR(2)$. Now we can decide for $AR(1)$.
+
+### Code
+
+#### Skirts.ts
+
+```R
+## The skirt lengths
+tsdisplay(skirts.ts)
+
+# Finite differencing once
+skirts.d1 <- diff(skirts.ts, differences=1)
+tsdisplay(skirts.d1) # Looks like if there is still some trend.
+
+# Finite differencing twice
+skirts.d2 <- diff(skirts.ts, differences=2)
+tsdisplay(skirts.d2) # Looks more stationary.
+
+# Applying the ARIMA(1, 2, 1) model.
+skirts.arima.1.2.1 <- Arima(skirts.ts, order=c(1, 2, 1))
+skirts.arima.1.2.1
+
+# Forecasting
+skirts.arima.1.2.1.fore <- forecast(skirts.arima.1.2.1, h=19)
+plot(skirts.arima.1.2.1.fore)
+
+# Auto ARIMA
+skirts.arima = auto.arima(skirts.ts)
+skirts.arima
+
+# Some stats.
+accuracy(skirts.arima)
+tsdiag(skirts.arima)
+
+# And we should also forecast and check the tsdisplay of the $residuals.
+# Can also do a qqplot and shapiro.
+```
+
+#### Births.ts
+
+```R
+# Performing SARIMA(3, 1, 3)(1, 1, 0)_12
+births.sarima.3.1.3.1.1.0 <- Arima(births.ts, order=c(3, 1, 3), seasonal=list(order=c(1, 1, 10), period = 12)               
+```
+
+## Lecture 12 - Multivariate analysis
+
+### Validation
+
+Instead of in-sample verification, which can be prone to overfitting, we will validate on an *independent* data. Verification is similar to cross-validation, aka pre-selection and selecting the best model. 
+
+We can do validation via a train-test split, which is done by *data partitioning*. Generally, we do so by taking the last 10% or 20% of the model as a test-set, whereas the others is the training set where we fit the parameters on.
+
+
+
+
+
+
+
+
+
+
+
+### R-code
+
+#### Data Partitioning
+
+```R
+# Data Partitioning
+births.ts.fit <- window(births.ts, start=c(1946, 1), end=c(1957, 12))
+births.ts.val <- window(births.ts, start=c(1958, 1))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Report tips
+
+- Explicit formulae should be mentioned! Together with the coefficients.
+  - We can check if the formula is invertible.
+- Try to search on the interwebz for extra information.
+- Look at the difference in results of the validation and diagnostics of the model.
+  - Forecasting? $\rightarrow$ Narrow band preferred
+  - Understanding? $\rightarrow$ Order of the model is preferred.
+- Judge the forecast and the residuals.
+- Find the context for some outliers for the second time series.
+
+The context for the first series is not really known.
+
+- Report the procedure / intermediate steps while fitting an adequate model.
+
+Idea: compare our best model with the automatic model.
+
+- Generally, 2 times finite differencing is enough, but for some of the series of exercise 1 4 times finite differencing is needed!
+- Extend the time-lag further for checking e.g. the seasonality. This can be done with `tsdisplay(...ts, lag.max=40)`.
+- Only change 1 variable at a time.
+
+Start with modelling and the conjecture itself, and then perform auto-ARIMA.
+
+- Check if one model has a different behaviour in the confidence band when comparing models.
+
+If you have a multiplicative seasonal pattern, then we can decide to go for a logarithmic transformation. Then we can apply a seasonal differencing of a lower order.
+
+- With drift is similar to one times order finite differencing.
+
+There are two procedures for model checking. 
+
+1. Whole series available. I select a percentage (75%) and we use this for validation.
+2. Woop
+
+We should select one model checking and argue why we use them.
