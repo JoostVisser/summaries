@@ -1327,7 +1327,7 @@ tsdiag(skirts.arima)
 
 ```R
 # Performing SARIMA(3, 1, 3)(1, 1, 0)_12
-births.sarima.3.1.3.1.1.0 <- Arima(births.ts, order=c(3, 1, 3), seasonal=list(order=c(1, 1, 10), period = 12)               
+births.sarima.3.1.3.1.1.0 <- Arima(births.ts, order=c(3, 1, 3), seasonal=list(order=c(1, 1, 0), period = 12)               
 ```
 
 ## Lecture 12 - Multivariate analysis
@@ -1338,11 +1338,66 @@ Instead of in-sample verification, which can be prone to overfitting, we will va
 
 We can do validation via a train-test split, which is done by *data partitioning*. Generally, we do so by taking the last 10% or 20% of the model as a test-set, whereas the others is the training set where we fit the parameters on.
 
+When we find our best model on the training set, then we can apply this on the test-set and get the respective error measures.
 
+#### Forecasting
 
+We can forecast one-step ahead in the future with our SARIMA model. The only new thing we need is that the current disturbance value of $Z_t$, but we add value $0$ for the future as this will be our best guess. Then, according to the formula, we can calculate a one-step-ahead forecast:
+$$
+X_t = \{ 1 + \alpha_1 X_{t-1} + \ldots + \alpha_pX_{t-p} \} + \{1 + \beta_1 B + \cdots + \beta_q B^q\} Z_t
+$$
+(With the $X_t$ values of the past we can create the disturbances of $Z_t$, and with this we can get a value for the future.)
 
+Want $X_{t+1}$? Then we just repeat this approach, with our prediction of $X_t$! 
 
+> Not restricted to economic series, but if you sample a variable on a regular frequency, then you can also apply Time Series!
 
+### Multivariate time-series
+
+What if we don't want to forecast from 1 variable, but from 2 variables? This is possible! 
+We have an autoregressive part, a moving average part and new: *a predictor*!
+$$
+X_t = \underbrace{\{ 1 + \gamma_1 Y_{t-1} + \ldots + \gamma_r Y_{t-r} \} }_{\text{Predictor(r)}} + \underbrace{\{ 1 + \alpha_1 X_{t-1} + \ldots + \alpha_pX_{t-p} \}}_\text{AR(p)} + \underbrace{\{1 + \beta_1 B + \cdots + \beta_q B^q\} Z_t}_\text{MA(q)}
+$$
+It might be that a variable, i.e. *advertisements*, has influence on another variable, *sales*.
+This can even be with a delayed effect!
+
+Ideas:
+
+- Linear System: $y_t = f(x_t)$
+
+#### Examples
+
+Suppose we have three time series:
+
+1. Labor.ts
+2. Unemploy.ts
+3. CO2.ts
+
+We know that the first and the third time-series both grow on the .
+Therefore, in this level, we also want to get rid of the dominant trend and seasonality.
+
+We want to find a cross-covariance to see if there is any correlation between the two variables $X_t$  and $Y_t$. Actually, we're comparing the covariance of $X_t$ and $Y_{t+k}$. (Lag for delayed effect.)
+$$
+Cov(X_t, Y_{t+k}) = E[(X_t - \mu_X)(Y_{t+k} - \mu_Y)] \equiv \gamma_{XY}(k)
+$$
+We divide it by the standard deviation to get the cross-correlation function.
+
+`ccf(labor.ts, unemploy.ts, na.action=na.omit)`
+
+After removing the trend via finite differencing, we perform this again.
+
+- We see that there is some seasonality, so we will perform seasonal differencing.
+- This is called **prewhitening**, as we are going towards white noise by removing trend and seasonality.
+  You can also do double prewhitening.
+- We notice that after prewhitening, hawaii.ts and unemploy.ts have no significant correlation, but labor.ts and unemploy.ts does.
+
+#### Another example
+
+Suppose we have many different variables for marketing, such as Catalogs mailed, amount spent on advertising, # of CS representatives etc. 
+Can we predict one series with the help of the others? $\rightarrow$ Causality
+
+We will  use $VARMA$ models for this.
 
 
 
@@ -1356,6 +1411,19 @@ We can do validation via a train-test split, which is done by *data partitioning
 # Data Partitioning
 births.ts.fit <- window(births.ts, start=c(1946, 1), end=c(1957, 12))
 births.ts.val <- window(births.ts, start=c(1958, 1))
+```
+
+### Testing
+
+```R
+## Performing Autoarima on the testset.
+f1 <- auto.arima(births.ts.fit)
+f1
+
+# Testing with the given model
+f1.val <- Arima(births.ts.val,model=f1)
+f1.val
+accuracy(f1.val)
 ```
 
 
@@ -1401,7 +1469,9 @@ If you have a multiplicative seasonal pattern, then we can decide to go for a lo
 
 There are two procedures for model checking. 
 
-1. Whole series available. I select a percentage (75%) and we use this for validation.
-2. Woop
+1. Whole series available. I select a percentage (75%) and we use this for validation. Rest for verification.
+2. Woop. Didn't hear this one.
 
 We should select one model checking and argue why we use them.
+
+It might actually happen that, in the end, the Exponential Smoothing works better than Box-Jenkins!

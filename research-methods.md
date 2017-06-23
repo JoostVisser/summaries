@@ -393,3 +393,22 @@ Kinda looks *Kant*-ish.
 
 #### Intellectual Honesty
 
+
+
+
+
+## Presentation - Content
+
+
+
+
+
+
+
+
+
+
+
+## Tips for exam
+
+- Bring Code of Conduct.

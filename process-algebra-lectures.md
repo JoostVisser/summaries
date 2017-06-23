@@ -1009,11 +1009,11 @@ An advantage of using *branching bisimilarity* is that in a way that keeps the c
 Branching bisimilarity is an *equivalence* that is *compatible* with the operations of the algebra. However, we do not have a *congruence*, i.e. if we have multiple terms that are branching bisimilar, then their $+$ might not be bisimilar.
 Recall: congruence on an algebra is an equivalence that is compatible with the operations of the algebra.
 
-Note: if you have two transition systems which are branching bisimilar, and one of them does not contain any taus, then if you remove the taus from the other transition system then it should result in a bisimilarity relation..
+Note: if you have two transition systems which are branching bisimilar, and one of them does not contain any taus, then if you remove the taus from the other transition system then it should result in a bisimilarity relation.
 
 Here's an example of the cases:
 
-<INSERT EXAMPLE>
+![tau-abstraction-examples](/tau-abstraction-examples.jpg)
 
 ## Lecture 12 - 
 
@@ -1276,3 +1276,187 @@ However, this is not finitely definable in $TCP(A)$ and $BCP(A, \gamma)$.
 > **Case 2:** If $t \overset a \longrightarrow u$, then note that $t \ R \ t'$.
 >
 > Similarly we can create a relation such that $q + r \bis r$, as we know that $(p+q)+r \bis (q+p)+r$.
+
+## Lecture 15 - More random exercises
+
+**Exercise 5.5.6:** Consider the recursive specification $\{X = a.X + b.X \}$. Determine $\pi_n(X)$ for all $n \in \mathbb N$.
+**Solution:** 
+$$
+\begin{align*}
+\pi_0(X) 
+&= \pi_0(a.X + b.X) & [Rec] \\
+&= \pi_0(a.X) + \pi_0(b.X) & [PR 5] \\
+&= 0 + 0 &[PR] \\
+&= 0 & [A6]
+\end{align*}
+$$
+
+$$
+\pi_1(X) = ... = a.0 + b.0
+$$
+
+What about:
+$$
+\pi_n(X) \overset ? = a.\pi_{n-1}(X) + b.\pi_{n-1}(X)
+$$
+However, we want to get rid of $\pi$!
+There are two ways to do so:
+$$
+\pi_n(X) = (a.1 + b.1)^n
+$$
+Or perhaps even inductively:
+Define $p_0, p_1, p_2, \ldots \in \mathcal C(BSP(A))$ with induction on $n$ as follows:
+$$
+\begin{align*}
+p_0 &\equiv 0 \\
+p_{n+1} &= a.p_n + b.p_n
+\end{align*}
+$$
+We can actually confirm that the former equals $p_n$.
+We can proof this with induction.
+
+> Note: we can use the projection to proof that two equations are equal, using $AIP^-$, by:
+>
+> - Proving that all the projections for $n \in \mathbb N$ are equal..
+> - One of the two equations is in Head Normal Form or has a guarded specification / is finitely branching.
+
+**Exercise 6.6.1:** Prove, using $AIP^-$, that any solution of $X = a.X \cdot b.1$ is also a solution of $X = a.X$.
+
+**Solution:** To prove: $\pi_n(X) = \pi_n(Y)$ for all $n \in \mathbb N$.
+Proof by induction on $n \in \mathbb N$.
+If $n=0$, then:
+$$
+\begin{align*}
+\pi_n(X) = \pi_0(X)
+&= \pi(a.X \cdot b.1) \\
+&= 0 \\
+&= \pi_0(a.Y) \\
+&= \pi_0(Y) = \pi_n(Y)
+\end{align*}
+$$
+Welp, induction step is not going that well.
+
+That's why we want to do something different: $\pi_n(X \cdot p) = \pi_n(Y), \forall n \in \mathbb N, \forall p \in \mathcal C(TSP(A))$.
+
+
+
+Since we prove for all $\pi_n(X)$, we know that $\pi_n(X \cdot 1) = \pi_n(Y)$.
+
+**Exercise 6.4.2:** Prove by structural induction that for all closed $TSP(A)$-terms $p$ and $q$ and $n\geq 0$,
+$$
+(TSP + PR)(A) \vdash \pi_n(p \cdot q) = \pi_n(\pi_n(p) \cdot \pi_n(q))
+$$
+**Solution:**
+
+Note that we know that $\pi_n(\pi_n(p)) = \pi_{\min (m, n)}(p)$.
+Furthermore, notice by the elimination theorem for $TSP(A)$ there exists for every $p \in \mathcal C(TSP(A))$ there exists a $p' \in \mathcal C( BSP(A))$ such that $TSP(A) \vdash p = p'$. Therefore, by the elimination theory of $TSP(A)$, if we proof it by structural induction for all closed $BSP(A)$ terms, then it should also hold for $TSP(A)$.
+
+**Base case**: We do induction on the structure of $p$. Furthermore, we know that $n = 0$.
+
+- $p \equiv 0 : \pi_n(p \cdot q) = \pi_n(0) = \pi_n(0 \cdot \pi_n(q)) = \pi_n(\pi_n(0) \cdot \pi_n(q))$
+- $p \equiv 1: \pi_n(p \cdot q) = \pi_0(q) = \pi_n(\pi_n(q)) = \pi_n(1 \cdot \pi_n(q)) = \pi_n(\pi_n(1) \cdot \pi_n(q))$
+- $p \equiv a.p'$: $\pi_n(p \cdot q) \equiv \pi_n(a.p' \cdot q) = \pi_n(a.(p' \cdot q)) = 0 = \pi_n(0) = \pi_n(0\cdot\pi_0(q) = \pi_0(\pi_( a.p') \cdot \pi_n(q) = \pi_n(\pi_n(p) \cdot \pi_n(q))$
+- For this, we need to formulate for appropriate IH.
+  $p = p_1 + p_2:$ $\pi(p\cdot q) \equiv \pi_n ((p_1 + p_2) \cdot q) = \pi_0(p_1 \cdot q) + \pi_0(p_2 \cdot q) \overset {IH} = \pi_0(\pi_0(p_1) \cdot \pi_0(q)) + \pi_0(\pi_0(p_2) \cdot \pi_0(q))$
+  $ = \pi(\pi(p_1) \cdot \pi_0(q) + \pi_0(p_2) \cdot \pi_0(q)) = \pi_0((\pi_0(p_1) + \pi_0(p_1) )\cdot \pi_0(q))=\pi_n(\pi_n(p) \cdot \pi_n(q))$
+
+**Induction step:** Let $n \in \mathbb N$. We want to proof it holds for $n+1$.
+
+**Exercise 7.6.9:** The process $!p$ denotes the *replication* of $p$, denoting the process term  $p \parallel p \parallel p \parallel \cdots$. This cannot be defined by $ X = p \parallel X$, since $X$ is unguarded and has infinitely many solutions.
+However, the equation $X = p { \Large _\stackrel {\parallel \ } - } X + p\ |\ 1$ *can* be defined for the intended purpose.
+
+We want to prove that $!p = p \parallel\ !p$. To do so, we prove that both $!p, !p$ and $!p \parallel p, !p$ denotes solutions to the guarded recursive specification
+$$
+Y = p { \Large _\stackrel {\parallel \ } - } Y + X \\
+X = p { \Large _\stackrel {\parallel \ } - }X + p \ | \ 1
+$$
+
+Here's a proof:
+
+![replication-proof](/replication-proof.jpg)
+
+## Lecture 16 - Yet even more exercises
+
+### Exam questions
+
+**Exam June 2016, question 2:**
+
+1. We want to prove that $\sim_T$ is a congruence. To do so, we need to prove two things: that $\sim_T$ is an equivalence relation and that $\sim_T$ is *compatible* with all operations of $MPT(A)$.
+
+   1. Why is it an equivalence? 
+      (We want it to hold it for all $MPT(A)$ terms, so we declare an arbitrary one and show it holds.)
+      Reflexivity: Let $p \in \mathcal C(MPT(A))$, then clearly $tr(p) = tr(p)$, thus $p \sim_T p$.
+      Symmetry: Similarly to reflexivity.
+      Transitivity: Similar to Symmetry.
+   2. Why is it compatible with $MPT(A)$.
+      Case $a.\_$: Let $p,q \in \mathcal C(MPT(A))$ and suppose that $p \sim_T q$. We need to prove that $a.p \sim_T a.q$.
+      Note that $tr(a.p) = \{a.\sigma\ |\  \sigma \in tr(p)\} \cup \{\epsilon\} =  \{a.\sigma\ |\  \sigma \in tr(q)\} \cup \{\epsilon\} = tr(a.q)$.
+      Thus, we have that $a.p \sim_T a.q$
+      (If we want to answer the question more formally, then we would have to look at the operational semantics, aka TDS, and notice that $a.p$ could only do an $a$ step to $p$, therefore when looking at the definition of trace, then ...)
+      Case $\_+\_$: Is similar to $a.\_$.
+
+2. Note that $a.(b.0 + c.0) \sim_T a.b.0 + a.c.0$.
+   For $tr(a.(b.0 + c.0)) = \{ \epsilon, a, ab, ac \} = tr(a.b.0 + a.c.0)$.
+   However, $a.(b.0 + c.0) \not \bis a.b.0 + a.c.0$,  as when we try to draw the transition system and relate them, then we get some trouble with the relation.
+
+3. Suppose $MPT(A)$ would be a ground-complete axiomatisation for $\mathbb P(MPT(A))_{\sim_T} $, then for all $p, q \in \mathcal C(MPT(A))$ such that $\mathbb P(MPT(A))_{/\sim_T}  \vDash p \sim_T q$ we would have that $MPT(A) \vdash p=q$.
+
+   Now consider the equation $a.(b.0 + c.0) = a.b.0 + a.c.0$. This equation is valid in $\mathbb P(MPT(A))_{/\sim_T}$, thus $MPT(A) \vdash a.(b.0 + c.0) = a.b.0 + a.c.0$.
+
+   Since $MPT(A)$ is sound for the algebra $\mathbb P(MPT(A))_{/\bis}$, it would follow that $a.(b.0 + c.0) \bis a.b.0 + a.c.0$, quod non (see (b)). We have derived a contradiction from the assumption that $MPT(A)$ is a ground-complete axiomatisation for $\mathbb P(MPT(A))_{/\sim_T}$, thus it is not.
+
+**Exam June 2016, question 2:**
+
+1. ​
+   $$
+   \begin{align*}
+   X 
+   &\equiv \delta_H(\mu.B.E \parallel \mu C.E) \\
+   &= \sum_{d \in D} i?d.\underbrace{\delta_H(\mu B_d.E \parallel \mu C.E)}_{X_d} \equiv \sum_{d \in D} i?d.X_d
+   \end{align*}
+   $$
+   Let us now derive $X_d$:
+   $$
+   \begin{align*}
+   X_d 
+   &\equiv \delta_H(\mu B_d.E \parallel \mu C.E) \\
+   &= l !?\perp.\underbrace{\delta_H(\mu B_d.E \parallel \mu C.E)}_{X_d} + l !? d. \underbrace{\delta_h (\mu B_d.E \parallel o!d.\mu C.E)}_{Y_d} = l !? \perp.X_d + l !?d . Y_d
+   \end{align*}
+   $$
+   Now, let's derive $Y_d$:
+   $$
+   \begin{align*}
+   Y_d 
+   &= \delta_h (\mu B_d.E \parallel o!d.\mu C.E) \\
+   &= \sum_{e \in D} i?e.\underbrace{\delta_H(\mu B_e.E \parallel o!d. \mu C.E)}_{Z_{de}} + o!d.\underbrace{\delta_H(\mu.B.E \parallel \mu C.E)}_X = \sum_{e \in D}i?e.Z_{de} + o!d.X\\
+   \end{align*}
+   $$
+   Let us now continue with $Z_{de}$:
+   $$
+   \begin{align*}
+   Z_{de}
+   &= \delta_H(\mu B_e.E \parallel p!d .\mu C.E) \\
+   &= o!d. \underbrace{\delta_H(\mu B_e.E \parallel \mu C.E)}_{X_e} = o!d.X_e
+   \end{align*}
+   $$
+   Thus, we have a recursive specification that we can write down.
+
+   Look at the terms at the start of each derivation of the equation. We can call them $p, p_d, q_d$ and $r_{de}$ respectively. In the above derivation we have established that $p, p_d (d \in D), q_d (d \in d)$, and $r_{de} (d.e \in D)$ denotes a solution for $F$.
+   Since $X, X_d (d \in D), Y_d$, and $Z_{de}$ are also a solution of this recursive specification, it follows by RSP that these solutions must be the same, as there can only be one solution. Therefore we have that $p = X$. 
+
+2. The idea here is to draw the transition system of $\tau_I(\mu X.E)$, since we proved in the first exercise that $\mu X.E$ is the same as $\delta_H(\mu B.E \parallel \mu C.E)$.
+   Then we draw the transition system of $\mu B.G$ and give a relation $R$ such that these are rooting branching bisimilar.
+
+**Question 1 - Exam 2015:**
+
+1.  
+   1. Prove the first equation using only axioms.
+   2. Prove via structural induction. **Tip:** Look at elimination theorem in the book. 
+      It's the same as $BCP_\tau$.
+2.  
+   1. Use proof trees for this.
+   2. We've done this one before in the lectures.
+   3. Identify an infinite subset of terms and argue that these states are not pairwise bisimilar. 
+      Joost: ​:zzz:​
+
+
