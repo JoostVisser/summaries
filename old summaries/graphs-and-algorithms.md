@@ -376,6 +376,191 @@ $\mathbb E[ \text{Number of conn subgraph of size} > \log n]$
 
 Trick, take $r=1+\log n$ instead of $r = \log n$.
 
+## Lecture 7 - Treewidth
+
+### What is treewidth?
+**Treewidth:** A measure of how 'treelike' a graph is.
+
+Useful because:
+
+- Very many NP-hard graph problems can be solved fast on graphs of small treewidth. (FPT)
+- Many graphs of interest have small treewidth.
+
+> Reminder: weighted independent set DP
+>
+> **Goal:** Find the highest weighted independent set.
+>
+> 1. Either include the current node and continue with all grandchildren.
+> 2. Or you don't include the current node and continue to the next node.
+>
+> Polynomial Time
+
+**Tree decomposition:** Pair $(X, T)$.
+
+1. $X=\{X_1, \ldots, X_l \}$ represents a **bag**, with $X_i \subseteq V$
+2. **T** is a tree with vertex set $X$ such that:
+   1. $\bigcup_{i=1}^l X_i = V$
+      - All vertices from all $X_i$ result in the vertex set $V$.
+   2. $E \subseteq \bigcup_{i=1}^l X_i \times X_i$
+      - The new edges becomes the connections between the *bags*.
+   3. $\forall_{v \in V}:$ all $X_i$ containing $v$ induce connected subtree in $T$.
+      - In other words, if $X_i$ and $X_j$ both contain vertex $v$, then all nodes $X_k$ on $T$ also contain $v$.
+
+**Treewidth:** Width of tree decomposition $(X, T)$: $\max_{i=1}^l |X_i| - 1$. 
+
+- Treewidth is the minimum width of all possible tree decompositions of $G$.
+- Basically the size of the largest bag $-1$.
+
+### Cops and Robber interpretation
+
+Suppose you have $w$ cops ($c_1, \ldots, c_w$) trying to capture a robber $r$. One player plays the robber, other player controls the cops. 
+
+During a turn, the following happens:
+
+1. The cop-player does a move:
+   1. The cop-player revomes a cop from the board.
+   2. The cop-player adds a cop to the board (if $l < w$)
+2. The robber may move freely around the edges $G$ as long as he doesn't visit a cop vertex. He also knows where the cop player lands.
+
+The game starts with zero cops and the cops win if they add a cop on the vertex where the robber is.
+
+**Theorem 7.1:** $w+1$ cops can win if and only if the graph has treewidth $\leq w$.
+
+### Nice Tree decompositions
+
+A nice tree decomposition is a tree decomposition that has been transformed into a tree decomposition that is easier to work with for algorithms:
+
+1. Every bag of $T$ has at most two children.
+2. If a bag $X_i$ has two children, $X_j, X_{j'}$, then these are all the same. $X_i = X_j = X_j'$
+3. If a bag has one child $X_j$, then either:
+   - $|X_i| = |X_j| + 1$ and $X_j \subseteq X_i$.
+     - It's like bag $|X_i|$ introduces a new vertex $v$.
+   - $|X_i| = |X_j| - 1$ and $X_i \subseteq X_j$.
+     - It's like bag $|X_j|$ forgets a vertex $v$.
+
+This is very useful, as a **lemma** says that we can compute a *nice tree decomposition* of width $w$ from a graph $G$ with a tree decomposition of width $w$ in polyhnomial time.
+
+There are roughly four kind of bags:
+
+1. **Leaf bag** - These are bags at the end of the tree decomposition, with 0 children.
+2. **Introduce bag** - These bags introduce a single new vertex in the tree decomposition.
+3. **Forget bag** - These bags remove a single vertex in the tree decomposition.
+4. **Join bag** - These bags duplicate the bag to get multiple subtrees for different paths.
+
+### Weighted Independent Set on Graphs of Small Treewidth
+
+ Let us introduce new notation for this:
+
+Given nice tree decomposition $(X, T)$, for a bag $i=1, \ldots, l$, let $G_i = (V_i, E_i)$ be the subgraph of $G$ induced by all vertices in bags that are descendants of bag $i$ in $T$.
+
+- In words: $G_1$ is the subgraph of all vertices in bag $X_1$ + descendent bags of $X_1$.
+
+**Theorem 7.2:** Given tree decomposition of $G$ of width $w$, we can solve weighted Independent Set in $O^*(2^w)$ time.
+
+**Proof:** We define the table entries of the DP algorithm. For every bag $i=1, \ldots, l$ and subset $Y \subseteq X_i$, we define:
+$$
+A[i, Y] = \max \{\omega(W): W\text{ is an independent set of } G_i \wedge W \cap X_i = Y\}
+$$
+
+- In words: $A[i, Y]$ is the maximum weight of an independent set of $G_i$, where we only include the vertices $Y$ from $X_i$, and nothing more.
+
+The algorithm then computes the $A[i, Y]$ for all bags $i = 1, \ldots, l$ and $Y \subseteq X$. It does so as follows:
+
+1. **Leaf bag** - There are two subsets here, the empty set and $v$, so we calculate entries for both of them (0 and $\omega(v)$ respectively).
+2. **Introduce bag** - New vertex $v$ not in $Y$? Then the treewidth it the same as the child $A[j,Y]$. New vertex in $v$, then:
+   1. Either add $\omega(v)$ to the new $A[i,Y \cup \{v\}]$ when no neighbour of $v$ is in $Y$.
+   2. Put $-\infty$ there if there is a neighbour $v$ in $Y$, as this weighted independent set is invalid.
+3. **Forget bag** - Now, vertex $v$ can be either in the independent set or not. We will consider both scenarios for a introduce bag later on. ($A[i,Y] = \max \left\{A[j, Y], A[j, Y \cup \{v\}]\right\}$)
+4. **Join bag** - The two independent sets form together an independent set of $G_i$ if they are consisent in the overlapping vertex set $S$. Just add both entires and substract $\omega(Y)$.
+
+
+### BFS and DFS notes
+
+BFS note: Consider the tree $T$ created by the BFS, then the path between root $r$ and any other vertex is the shortest path between $r$ and $v$.
+
+DFS note: Consider the tree $T$ created by the DFS, then any edge in $G$ must be between $v$ and a descendant of $v$ in the DFS tree $T$.
+
+### Another sidenote - Dominating set on trees
+
+> Remember, a dominating set is a set $X$ such that $\forall v \in V:$ either $v \in X$ or at least one neightbour of $v$ is in $X$.
+
+We'll solve this with dynamic programming as well. This can even be done in $O(n)$, but we'll focus on polynomial instead. We need to distinguish three cases:
+
+1. If a neighbour of $v$ is already in the dominating set.
+   -  $A_D[v]$ denotes the min weight of a dominating set of $T[v] \setminus v$
+2. Whether we should include $v$ in the dominating set. Then we can include the child, or don't include the child.
+   - $A_I[v]$ denotes the min weight of the dominating set of $T[v]$ that includes $v$.
+3. Whether we should exclude $v$ in the dominating set, so $v$ still needs to be dominated. This is when we're going to consider the child inside the dominating set instead.
+   - $A_E[v]$ denotes the min weight of the dominating set of $T[v]$ that excludes $v$.
+
+In short hand, this is the idea behind the three sets:
+
+1. $v$ is already dominated and we don't include $v$
+2. $v$ is already dominated and we include $v$.
+3. $v$ is not dominated and we don't include $v$.
+
+Base case, leaf node:
+
+- $A_D[v] = 0$, as we do not include $v$ in the dominating set.
+- $A_I[v] = \omega(v)$, as we include $v$ to our dominating set.
+- $A_E[v] = \infty$, invalid dominating set.
+
+Iterative case, $v$ is not a leaf:
+
+- $v$ is already dominated
+  - $$A_D[v] = \sum_{c \in ch(v)} \min \{A_E[c], A_I[c]\}$$, we don't include $v$, so minimum of the children of either including or excluding.
+  - $$A_I[v] = \omega(v)  + \sum_{c \in ch(v)} \min \{A_D[c], A_I[c]\} $$, now we include $v$, so all children are automatically dominated, just ahve to choose between $A_D$ and $A_C$.
+- $$A_E[v] = \min_{c \in ch(v)} \left \{ A_[c] + \sum_{c' \in ch(v) \setminus c} \min \{A_I[c'], A_E[c']\}\right\}$$
+
+### $k$-path
+
+We also know that $k$-path is FPT with running time $O^*(w^{O(w)})$
+
+### Planar Graphs Basics
+
+**Planar Graphs:** Graphs that can drawn in 2D-plane without edges crossing each-other. 
+
+1. Can be regonized in linear time whether this is possible $O(n)$.
+   - A drawing can even be found in $O(n)$.
+2. **Face:** A 'region' that is embedded within points.
+
+
+![Face](images/Face.png)
+
+**Euler's formula:** If $G$ is planar and connected with $n$ vertices, $m$ edges and a drawing with $f$ faces, then $n-m+f=2$.
+
+**Dual graph:** Create graph $G(V',E')$ from $G(V, E)$ where we have new vertices $V'$ for every face $f$, and the edges that connect faces next to eachother, $(f_1, f_2) \in E'$.
+
+### Graph Minors
+
+**Contract** an edge $e$ as follows: 
+
+1. Delete vertices $u$ and $v$ from $G$
+2. Add a new vertex $w_{u,v}$ to $N(u) \cup N(v))$. (Similar as in the randomized algorithm.)
+
+Graph $H$ is a **minor** of $G$ if $H$ can be obtained from $G$ by removing vertices and removing and contracting edges.
+
+*Minor model:* Series of operations to transform $G$ to $H$.
+
+The $(l \times l)$-grid is the graph on vertices $v_{ij}$ for $1 \leq i, j \leq l$ with edges $(v_{i,j},v_{i+1,j})$ and $(v_{i,j},v_{i,j+1})$
+
+---
+
+**Theorem 7.4 - Grid Minor Theorem**
+
+For every integer $l$, every planar graph has either:
+
+- ($l \times l$)-grid as a minor
+- Treewidth at most $9l$
+
+Moreover, there exists a polynomial time algorithm that either finds such a minor model or tree decomposition.
+
+----
+
+This theorem results in many $O^*(2^{O(\sqrt n)})$ and $O^*(2^{O(\sqrt k)})$ algorithms.
+
+**Kuratowski's theorem:** $G$ is planar iff it has no $K_5$ or $K_{3,3}$ as minor.
+
 ## Lecture 9 - Randomized Algorithms
 
 **Incremental Construction:** Suppose input is $Obj_1,Obj_2, \ldots, Obj_n$. Need to computer with these objects.
@@ -498,7 +683,7 @@ $e_i : \Pr[\text{We contract an edge not in the min cut}]: 1 - \frac k {m_i} = 1
 
 What is the probability that we have not contracted an edge in the min cut every time?
 
-$$(1 - \frac 2 n)(1 - \frac 2 {n-1}) \cdots (1 - \frac 2 3) = \frac 2 {n(n-1)} \geq \frac 2 {n^2}$$ (after writing them down and cancelling many terms)
+$$(1 - \frac 2 n)(1 - \frac 2 {n-1}) \cdots (1 - \frac 2 3) = \frac 2 {n(n-1)} \geq \frac 2 {n^2}$$ (after writinContractg them down and cancelling many terms)
 
 This is only for *one* min-cut.
 
@@ -602,4 +787,4 @@ Also: $1+x \leq e^x$
 Directed $k$-path problem: Given directed graph $G$, is there a simple path on at least $k$ vertices?
 Is $G$ acyclic? $\Rightarrow$ polynomial time via DP. (Create array $A[v]$ and get the max from this DP vector. Uses the fact that $$A[v_i] = \max_{u \in N^-(v_i)}A[u]+1$$.
 
-$$asld;​$$
+$$asld;$$

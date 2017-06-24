@@ -87,7 +87,7 @@ In *regression*, the *squarred error* loss function is often used: $\ell(\hat y,
 
 ### Probability measure and Expectation
 
-Define a join probability destribution on $\X \times \Y$ and $\P_{XY}$, where $(X,Y)$ is a pair of random varaibles distributed according to $\P_{XY}$. This can also be described as the marginal distribution of $X$ ($\P_X$) and the conditional distribution of $Y$ given $X$ ($\P_{Y|X}$). 
+Define a join probability destribution on $\X \times \Y$ and $\P_{XY}$, where $(X,Y)$ is a pair of random variables distributed according to $\P_{XY}$. This can also be described as the marginal distribution of $X$ ($\P_X$) and the conditional distribution of $Y$ given $X$ ($\P_{Y|X}$). 
 
 Let $p$ denote the density function of $\P$. Then we have the expectation operator:
 $$
@@ -123,6 +123,13 @@ To compute the risk, we need to know the distribution $\P_{XY}$. However, this g
 **Law of total expectation:** $\E[\E[Y|X]] = \E[Y]$.
 
 - Note that $\E[Y|X]$ is conditioned on $X$, which is random, thus $\E[Y|X]$ is also a random variable!
+
+**Law of total probability:** $\P[X] = \sum_n \P[X|Y_n] \P[Y_n]$
+
+- This can be another formulation: $\P[X\leq x] = \E[\P[X \leq x|Y]]$
+- The idea is to consider all different events $Y_n$ to calculate $\P[X]$.
+
+**Bayes' theorem:** $P(A|B) = \frac{P(B|A)P(A)}{P(B)}$
 
 ## Chapter 2 - Binary classification and Regression
 
@@ -244,7 +251,7 @@ Note that $\inf_{f \in \F} R(f)$ is the best estimator $f \in \F$.
 
 Suppose you pick $f$ according to the empirical risk minimizer:
 
-- Approximation error will be smaller with a larger $\F$ is.
+- Approximation error will be smaller with a larger $\F$.
 - Estimation error will be bigger with a larger $\F$, because:
   - *Overfitting:* the expected risk, $\E[R(\hat f_n)]$, will be large as $\hat f_n$ overfits on the empirical data, resulting in a higher expected risk compared to other classifiers in $\F$.
 
@@ -856,7 +863,7 @@ This result is useful only if the bound in the estimation error is good and the 
 
 Suppose we have a universe $\X = [0, 1]^2$, which you can idenity as a square. You can consider the best classifier (Bayes' classifier) as a set $G^* = \{ x: \P(Y=1|X=x)\geq\frac 1 2)$, such that our Bayes' classifier $f^*(x) = \1\{x \in G^*\}$. In words, this means that we have a subset of $\X$, namely $G^*$, and if our features $x$ are inside this set/field, then we should predict 1. An illustration of this can be shown below:
 
-![Bayes' illustrated](images/Bayes' illustrated.png)
+![Bayes' illustrated](../images/Bayes' illustrated.png)
 
 The boundary of $G^*$ is called the *Bayes Decision Boundary* and is given by $\{x:\eta(x) = \frac 1 2\}$.
 
