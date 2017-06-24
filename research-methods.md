@@ -220,4 +220,195 @@ It helps to tell what the questionnaire is used for to get a better response.
 
 Finally, design, implement and test your questionnaire to make sure that you get the answers that you want to have. :)
 
-​:dead:​​:do_not_litter:​​:bomb:​
+:dead::do_not_litter::bomb:
+
+## Lecture 4 - Statistics
+
+Suppose we have hundreds of experiments. It might not be a good idea to include all of them in the master thesis, so perhaps we can just post statistics in the master thesis.
+
+When we only give some statistics such as *mean*, *variance*, and *correlation coefficient*, then we still don't know that much about the underlying distribution, as shown with the Anscombe's Quartet. 
+
+- Statistics do not tell the whole story
+
+Statistics 101:
+
+- **Population** - The whole population that ideally, but non-realistically, 
+- **Sample** - Subset of the population for which we test something.
+- **Probability Distribution**
+- **Random variable** - A non-deterministic variable. This variable can take up various values, this depends on the distribution of the random variable.
+
+Suppose we have two algorithms which we rank. For 50% of the cases algorithm A beats algorithm B and vice versa. Does that mean that they're equally good?
+
+- We cannot state that. Perhaps algorithm A performs almost as good as algorithm B for 50% of those cases, but for the other tests algorithm B is much worse than A, than algorithm A would be a better choice than algorithm B.
+
+**Categorical data:** Just labels
+**Ordinal data:** Ranking of data: $1 < 2 < 3 < 4$, but the difference have no meaning.
+**Interval data:** Difference between ranks is meaningful: $2-1 = 3-2$. Ratios, however, are not meaningful. Example: 23 May, 24 May, 25 May.
+**Ratio data:** Same as interval data but ratios are always meaningful.
+
+Useful things to know about a distribution:
+
+- Measure of location [Always]
+  - Mean (for Interval data + Ratio data) || median (for ordinal, interval or ratio)
+- Measure of dispersion [Always]
+  - Variance
+- Measure of shape of distributions [Sometimes]
+  - Kurtosis + Skewness - Although it might be better to just draw the distributions.
+
+*Reminder:* It doesn't make much sense to report more digits than indicated of the standard deviation. Rule of thumb: first significant digit of standard deviation = last of the mean.
+
+*Another note:* Remember that some numbers have to be comparable. If you test with different input sizes, then it doesn't make sense to take the mean running time over all different input sizes.
+
+## Lecture 5 - Showing statistical data
+
+### Design principles for good visualisation
+
+Graphics displays should adhere to the following characteristics:
+
+- Show the data (duh)
+- Viewer thinks about the data itself, rather then the methodology / graphic design.
+- Avoid distorting what the data wants to say
+  - No cheating, e.g. removing removing the scales.
+- Present many numbers in a small space. && Make large datasets coherent.
+- Encourage the eye to compare the different pieces of data.
+- Reveal the data at *several levels* of detail. [Big picture + more detail]
+- Should have a clear **purpose** - Is it for exploration? How about description?
+- Write in the text something about it.
+
+There are some actual data principles:
+
+1. Maximize data-ink ratio - As much data shown with as little ink as possible.
+2. No chart junk (3D stuff etc)
+   - No unjustified 3D
+     - Research has shown that for planes, we can compare positions on common scales really well, unaligned scale and length decently well, angles a bit hard.
+       Really difficult is Area (2D size) and Depth (3D position).	
+
+Other important characteristics:
+
+1. Focus on the *core message* - Don't show things that aren't important for the diagram.
+
+**Lie factor:** $\frac {\text{Size of effect shown in data}} {\text{Size of effect in real world}}$
+
+## Lecture 6 - How to write a Master-like thesis
+
+### My first Master thesis!
+
+**Goal:** We want the readers to read our Master thesis. If we can **entertain** the reader to read our research, then it perhaps becomes more popular & more impact to society.
+
+How to do so?
+
+1. Sense of **purpose** - Is it relevant to the research question? 
+2. **Compelling** problem
+   - Challenging *puzzle* - Some readers like this.
+   - *Societal* relevance
+3. Solid connection to the **literature** and to the **recent developments**.
+
+Master thesis: "Telling your story 5 - 6 times with increasing level of detail."
+
+- Title $\leq 12$ words
+- Abstract $\leq \frac 1 2 $ words
+- Introduction $\leq 3$ pages
+- Preliminaries
+- "Body"
+- Conclusion $\leq 3$ pages
+
+|               | Content | Problem | State-of-the-art | Solution | Results |
+| ------------- | :-----: | :-----: | :--------------: | :------: | :-----: |
+| Title         |         |   ++    |                  |    +     |    +    |
+| Abstract      |   ++    |   ++    |        ++        |    ++    |   ++    |
+| Introduction  |   ++    |   ++    |        ++        |    ++    |   ++    |
+| Preliminaries |  (++)   |  (++)   |       (++)       |          |         |
+| Conclusion    |   ++    |    +    |        +         |    ++    |   ++    |
+
+#### Title
+
+Consider the following title: 
+"On an in-depth study of a hybrid approach to *water management in the Dommel basin*."
+
+- "Water management in the Dommel basin" - Vague and too specific
+- "Hybrid approach" - Not really anything novel.
+- "On an in-depth study" - Remove "on" and also "in-depth study" (of course it is!).
+
+#### Abstract
+
+Has to be very concrete, with 1 - 2 sentences about each topic.
+
+#### Introduction
+
+Has to be **self-contained** and discuss all the things in a bit more detail.
+
+- 1-2 paragraphs each.
+
+In the **solution** paragraph(s) in your introduction, you will need to talk about *what's new*.
+
+#### Preliminaries
+
+More details about one-or-more of these things.
+
+#### Body
+
+This should follow a different structure and really depends on the research done.
+
+Should contain **enough detail** for somebody else, someone of the same skill-level, to **reproduce** the experiment.  
+
+#### Conclusion
+
+Personal preference of the teacher: go to the elements in the reversed order.
+Results $\rightarrow$ Solution $\rightarrow$ State-of-the-art $\rightarrow$ Problem $\rightarrow$ Context
+
+- This is **not** a summary of the rest of the paper.
+- We want to **reflect** on the results. Also contains *future work*.
+
+#### Master-thesis only
+
+What is the difference between the Master-thesis and the research paper?
+Purpose of research paper: Demonstrate results.
+Purpose of Master-thesis: Demonstrate you're a competent student.
+
+- Even without results you can still give an in-depth discussion about the research.
+
+## Lecture 7 - Ethics
+
+**Kant** 
+
+- If you apply the action in general, then it shouldn't lead to inconsistencies.
+- Do to others as you would like them to do to you.
+
+**Utilitarianism**
+
+- Strife for maximum utility / maximum happiness in the world
+- Has some limitations, with regards to e.g. gladiator fighting or the fact that there is no self-focus on happiness, but everything for the greater good.
+
+**Virtue ethics**
+
+- Strive for a better you
+
+### TU/e code of scientific conduct
+
+#### Trustworthiness
+
+Students + Staff ground their views on *scientific evidence*.
+
+Kinda looks *Kant*-ish.
+
+#### Intellectual Honesty
+
+
+
+
+
+## Presentation - Content
+
+
+
+
+
+
+
+
+
+
+
+## Tips for exam
+
+- Bring Code of Conduct.

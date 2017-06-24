@@ -22,6 +22,7 @@ $$
 \newcommand{\C}{\mathcal C}
 \newcommand{\bspe}{BSP(A) + E}
 \newcommand{\biscl}{_{^/\bis}}
+\newcommand{\transition}[1]{\overset {#1} \longrightarrow}
 $$
 
 ## Lecture 0 - What is process algebra?
@@ -104,10 +105,6 @@ We write $T \vdash t = u$ if $\exists$ derivation of $t=u$ using the following r
 In other words, you can completely formalize these derivations such that we can proof equations from a bunch of axioms.
 
 We fine an interpretation $\iota$ of the function symbols as functions t
-
-
-
-
 
 ### Process
 
@@ -249,7 +246,7 @@ So given that two terms are bisimilar, we show equality via the four axioms of $
 
 Initial algebra $\mathbb I(\Sigma_1, E_1)$ is all the terms but with their equivalence classes, i.e. $[\mathbf 0]_{=}$. What we're basically proving with ground-completeness and soundness is that this class is isomorph with the algebra, which basically means that there is a one-on-one mapping between these two classes.
 
-#### Part 2
+### Part 2
 
 Proof idea for ground completion: 
 
@@ -271,7 +268,7 @@ How to proof for all closed MPT(A)-terms that $p \bis p + (q_1 + q_2) \implies p
 >
 > Then 
 
-#### Part 3
+### Part 3
 
 Extension to MSP: TSP - Sequential composition.
 
@@ -585,3 +582,881 @@ Exercise 5.5.2: 1. is guarded, 2. is not guarded.
 All this results in a new theory called **Recursive Specification Principle (RSP)**:
 
 $\Sigma$-algebra $\mathbb A$ satisfies RSP if every guarded recursive specification $E$ and some set $V_R$ of variables has *at most* one solution.
+
+## Lecture 8 - Recursion II
+
+### Recursive Specification Principle
+
+#### An example
+
+Consider the following recursive specification:
+$$
+X = a.X + b.X \\
+Y = a.Y + b.Z \\
+Z = a.Z + b.Y
+$$
+How do we prove *using RSP* that $X = Y$?
+
+> **Proof**
+>
+> Consider the following terms, which represents a solution to the equation:
+> $$
+> t_1 \equiv X\\
+> t_2 \equiv Y\\
+> t_3 \equiv Z
+> $$
+> To show that these terms are a solution, we should show that the equations should still hold:
+> $$
+> t_1 \overset ? = a.t_1 + b.t_1 \\
+> t_2 \overset ?= a.t_2 + b.t_3 \\
+> t_3 \overset ? = a.t_3 + b.t_2
+> $$
+> We can use the equations of the solution to substitute $t_1$, $t_2$, and $t_3$ with $X$, $Y$, and $Z$ respectively.
+> This results in the following equations:
+> $$
+> t_1 \equiv X  = a.X + b.X =  a.t_1 + b.t_1 \\
+> t_2 \equiv Y  = a.Y + b.Z = a.t_2 + b.t_3\\
+> t_3 \equiv Z  = a.Z + b.Y = a.t_3 + b.t_2
+> $$
+> Therefore, this is a valid solution.
+>
+> ---
+>
+> Now, consider the following solutions:
+> $$
+> t_1 \equiv X\\
+> t_2 \equiv Y\\
+> t_3 \equiv Z
+> $$
+> Now we should check that the solution still holds.
+> $$
+> u_1 \overset ? = a.u_1 + b.u_1 \\
+> u_2 \overset ?= a.u_2 + b.u_3 \\
+> u_3 \overset ? = a.u_3 + b.u_2
+> $$
+> We know that $u_2 \equiv X$. By the first equation, we know that:
+> $$
+> \begin{align*}
+> u_2 \equiv X &= a.X + b.X \\
+> &= a.u_2 + b.u_3
+> \end{align*}
+> $$
+> Satisfying the second equation. We can proof something similar. 
+>
+> By RSP we know that there exists at most 1 solution for the recursive specification. Therefore: $t_1, t_2, t_3 = u_1, u_2, u_3$ and thus $t_1 = u_1$, $t_2 = u_2$, and $t_3 = u_3$. Because we know that $t_2 = u_2$, we know that $Y = X$ which is what we wanted to show.
+
+#### Another example
+
+Another example, consider the following two recursive specifications:
+$$
+\begin{align*}
+E &= \{X = a.a.X\} \\
+F &= \{Y = a.(Y\cdot b.1) \}
+\end{align*}
+$$
+Can we proof that $\mu X .E = \mu Y . F$? Yes, we can!
+
+> **Proof**
+>
+> We proof this by defining an infinitely guarded specification $\{ Z_i = aZ_{i+1} | i \in \mathbb N\}$. We will find two different solutions that hold for this specification; one containing $X$ and the other one containing $Y$. Finally, as RSP can only have one solution at most, we will conclude that $X = Y$. 
+>
+> ![equality-rsp](/equality-rsp.jpg)
+>
+>  (We could also have defined the terms as follows: $t_0 = X$ and $t_{i+1} = a.t_{i}$.
+>
+> Furthermore, we define the terms $u$ as: $u_0 = Y$ and $u_{i+1} = u_i + b.1$. 
+> We proof that this ($u_i\overset ? = a.u_{i+1}$is a valid solution by solution by induction:
+>
+> - **Base case:** $u_0 \equiv Y = a(Y\cdot b.1) \equiv a.u_1$
+> - **Inductive case:** Suppose $u_i= a.u_{i+1}$ (Induction Hypothesis).
+>   $u_{i+1} = 
+>
+> By RSP, we know that there exists at most one solution. Thus these solutions must be the same, thus $t_0 = u_0, t_1 = u_1, \ldots$. Since $t_0 = u_0$, we know that $X \equiv t_0 = u_0 \equiv Y$.
+
+
+
+### Term model
+
+#### New recursive specification
+
+How do we talk about *multiple recursive specifications* at once, and how do we reason about this? Well, for this purpose, we are going to extend $BSP(A)$ such that we add all different recursive specifications possible, such as $E$ and $F$. Because then we can talk about equality with different recursive specifications.
+
+For this purpose, let us define *Rec* as the collection of **all** recursive specifications. Furthermore, let us call our new model as $BSP_\texttt{rec}(A)$. Since we have multiple recursive specifications, it might be that constants are defined in different ways, such as $E=\{X = aaX\}$ and $F = \{X = bX\}$. So which $X$ are we talking about? For this purpose, we will add the following notation:
+$$
+\mu X.E
+$$
+...
+
+...
+
+#### Recursive definition principle
+
+Consider $\Sigma$-algebra $\mathbb A$. We state that $\mathbb A$ satisfies **Recursive Definition Principle** if every  recursive specification + some variable set $V_R$ has *at least* one solution.
+
+Furthermore, we can show that $\mathbb P(BSP_\texttt{rec}(A))_{^/\bis}$ satisfies RSP. This is denoted as:
+$$
+\mathbb P(BSP_\texttt{rec}(A))_{^/\bis} \vDash RSP
+$$
+
+The proof of this, however, will be postponed.
+
+### Infinite processes
+
+**Regular behaviour:** An equivalence class of transition systems modulo $\bis$ containing at least one regular transition system.
+So if we can proof that at least one transition system is a regular transition system (i.e. if you draw it, it's a finite drawing) in this class of modulo $\bis$, then the behaviour of all transition systems in this class of modulo $\bis$ will be regular. (Example: see [this example](#Another-example), where $X$ is regular, $Y$ is not regular but its behaviour is still regular as $X = Y$.)
+
+How to show that the behaviour of a transition system is not bisimilar to a regular transition system? Well, show that there are infinitely many states that are not bisimilar to eachother. (See Lemma in lecture page 3/18.)
+
+## Lecture 9 - Definability and Expressiveness
+
+### Stack
+
+Suppose we have a LIFO queue, aka a Stack. Let $D = \{ d_1, \ldots, d_n\} $ be a finite set of data, and $D^*$ is the set of all finite sequences of elements of $D$.
+
+Initially, the stack can push any arbitrary elements of $d$ or it can terminate. Finally, let $d$ be the last pushed on the stack:
+$$
+S_{d \sigma} = pop(d).S\sigma + \sum_{e \in D} push(e).S_{ed\sigma}
+$$
+ We can proof that the behaviour of the stack is not regular. First, here is a sketch of the behaviour of the stack.
+
+![IMG_20170530_150328](/IMG_20170530_150328.jpg)
+
+How to proof not regular?
+
+There is a uniquely way of following a pop sequence going from one state to the empty state. Therefore, any two states given in the transition system, called $S_\sigma$ and $S_{\sigma'}$, then it follows that there is a unique sequence of $pop(d)$-transitions to $S_\epsilon$, the only state with the termination option. Therefore $S_\sigma$ and $S_{\sigma'}$ are bisimilar only if $\sigma = \sigma'$.
+
+Since there are infinitely many reachable states $\sigma$, there thus exists an infinite amount of bisimilar states and therefore is not regular. $\square$ 
+
+Another proof is proof by contradiction.
+
+### Definable
+
+A process is **definable** iff it is the unique solution of a *guarded* recursive specification over the signature of $T$.
+
+A process is **finitely definable** iff it is the unique solution of a *finite guarded specification* over the signature of $T$.
+This means that you can define it with finitely many equations.
+
+---
+
+**Theorem - Finitely definable and regularity**
+
+A behaviour is *finitely definable* in `BSP(A)` if and only if it is *regular*.
+
+---
+
+Sketch of proof: for the regular $\Rightarrow$ finitely definable, we can just name all processes with recursion variable and by construction these will be guarded and finite, since regular denotes finite.
+
+#### Intermezzo
+
+Suppose $s_i \bis s_j$ and $i < j$ and consider the *least* $i$ with this property.
+This means that there exists a bisimulation relation $R$ such that $s_i \ R \ s_j$. 
+There are two possibilities for this: either $s_i$ is $s_1$ or $i > 1$.
+If $i=1$ then $s_i$ does not have a $b$ step, whereas $s_j$ has a $b$-step to $s_{j-1}$., contradicting that $s_i \ R \ s_j$.
+If $i > 1$, then $s_i \overset b \rightarrow s_{i-1}$. Hence, since, $s_i \ R \ s_j$, then there should exist $s'$ such that $s_j \rightarrow s'$ and $s_{i-1} \ R \ s'$. Note that $s' = s_{j-1}$. Therefore $s_{i-1} \ R \ s_{j-1}$. However, we chose $i$ to be the least *i* with this property, but since $i-1 < i$, this results in a contradiction.
+
+### Back to stack again
+
+This means that the stack is not *finitely definable* in $BSP(A)$. However, in $TSP(A)$ we can write the stack down in a single line using sequential decomposition.
+
+## Lecture 10 - Expressiveness
+
+### Expressible up to bisimilarity
+
+A transition system is **expressible up to bisimilarity** in a process theory if it is bisimilar to the transition system associated with a closed T(A)-term.
+Regular transition system is expressible up to bisimilarity in $RSP_\texttt{rec}(A)$.
+
+- Why this? We want to state something about some unguarded recursive specifications.
+
+> Example
+>
+> Consider the following recursive specification:
+> $$
+> \{X_n = a^n .1 + X_{n+1}\ |\ n \in \mathbb N\}
+> $$
+> Then we have the following transitions:
+>
+> - $X_0 = 1 + X_1 \qquad X_1 = a.1 + X_2 \qquad X_2 = a.a.1 + X_3$.
+>
+> So when we're in the process $X_0$, we can actually execute transitions when we execute the process $X_1$, even though it isn't guarded. Similarly, for $X_2$ and $X_3$.
+>
+> Notice that when we draw this process, it's not regular. Therefore we cannot finitely define it in BSP. However, we *can* specify it in BSP with an infinite recursive specification with unguarded terms!
+
+> Assignment 6.6.7
+>
+> Find two non-bisimilar transition systems that are both solutions of the unguarded recursive equation $X = X \cdot a.1 + X \cdot b.1$.
+>
+> Consider the solution $X \mapsto 1$. Then it should hold that the transition system 1 should be bisimilar to $1 \cdot a.1 + 1 \cdot b.1$.
+>
+> Consider the solution $X \mapsto 0$, Then it should hold that $0$ and $0\cdot a.1 + 0 \cdot b.1$, which holds.
+> Similarly, consider the solution $X \mapsto a.b.0$. Then $a.b.0$ is also bisimilar to $(a.b.0) \cdot a.1 + (a.b.0) \cdot b.1$
+>
+> Finally, another transition system would be $\mu Y.\{ Y = a.Y\}$, since we always have to do $a$ steps and can never reach $a.1$ or $b.1$.
+>
+> However, notice that there **never** is a Transition System that we can fully compute or draw. The "solution" is just: $\rightarrow \circ$ .
+
+So... how do we give a recursive specification $E$ over $BSP(A)$ of an infinite transition system? We're going to define recursion variables as follows, for each state to each state:
+$$
+\begin{align*}
+X_{0,0} &= X_{0,1} \\
+X_{0,1} &= a.X_{1.0} + X_{0,2} \\
+X_{0,2} &= a.X_{2,0} + X_{0,3} \\
+&\cdots
+\end{align*}
+$$
+There are the infinite sequence of equations of state $s_0$. How about the rest of the states?
+$$
+\begin{align*}
+X_{1,0} &= 1 \\
+X_{2,0} &= X_{2,1} &X_{2,1} = b.X_{1,0} \\
+X_{3,0} &= X_{3,1} & X_{3,1} = b.X_{2,0}
+\end{align*}
+$$
+In general, the components are ordered like this: $X_{\text{state}, \text{trans}}$. In fact, we can do this for every *countable* transition system.
+
+----
+
+**Theorem**
+
+Every countable *transition system* is expressible up to bisimilarity in $BSP_\texttt{rec}(A)$.
+
+----
+
+Notice the difference between this and the [definable theorem](#Definable).
+
+#### Definability and expressiveness in TSP(A)
+
+We know that TSP(A) is as expressive as BSP(A), in both theories precisely all countable transition systems can be specified.
+
+However, in TSP(A) it's possible to finitely define infinite-state behaviours (which are not regular).
+
+> Exercise 6.6.8
+>
+> Consider the recursive specification $\{ X = X \cdot a.1 + a.1 \}$.
+>
+> One solution would be $\{ X_n = a^{n+1} + X_{n=1} \ | \ i \in \mathbb N$, but this is the same solution, we want a different solution.
+>
+> How about the following recursive specification, is this a solution:
+> $$
+> F = \{ Y = a.Z + U, \qquad Z = a.Z, \qquad U = U \cdot a.1 + a.1\}
+> $$
+> How do we check if $\mu Y.F$ is a solution? We draw the transition system of $\mu Y.F$ and we draw the transition system of it as a solution of $X$, namely $\mu Y . F \cdot a.1 + a.1$. If they are bisimilar.
+>
+> Therefore, such an unguarded equation has more than 1 solution.
+
+Note: solutions are about *validity* and interpretation and confirm they' re the same in the model, i.e. bisimilarity, not that two equations are axiomatic the same.
+
+### Basic Communicating Processes
+
+Why did we again do the processes? Well, it's easy in sequential algorithm to show that a process is correct, but for a parallel program it's much harder.
+
+**Goal:** Extend BSP(A) with a binary operator $\parallel$ for **parallel composition**.
+Processes $p \parallel q$ executes $p$ and $q$ in parallel.
+
+Consider the following process terms:
+
+- $a.b.1 \parallel c.1$
+  - We can either execute an $a$ step or a $c$ step.
+  - $a.b.1 \parallel c.1 \overset a \longrightarrow b.1 \parallel c.1 \overset c \longrightarrow (b.1 \parallel 1)\downarrow$
+
+**Assumption:** In our theory, we can execute either the left side or the right side, but not both side at the same time. Therefore, we assume that each action is *atomic*.
+
+#### Operational rules
+
+We can do either a step of the left component or the step of the right component.
+
+##### Synchronisation and Communication
+
+Extra idea: we're going to extend the semantics of parallel composition with synchronisation. This happens when the executions of two processes running in parallel are *interleaved*.
+
+This is when components may **synchronise** on certain actions using a *communication function*.
+**Communication Function:** partial function $\gamma: A \times A \rightharpoonup A$ satisfying two conditions:
+
+- $\gamma(a,b) = \gamma(b,a) \qquad \forall a, b \in A$   (Commutativity)
+- $\gamma(\gamma(a,b),c) = \gamma(a,\gamma(b,c)) \qquad \forall a, b \in A$   (Associativity)
+
+We can, e.g. assume that there are actions $c?k$, $c!k$ and $c!? k$, and that $\gamma(c?k, c!k) = \gamma(c!k, c?k) = c !? k$.
+
+This results in a new operational rule:
+$$
+\frac{x \overset a \longrightarrow x' \qquad y \overset b \longrightarrow y' \qquad \gamma(a, b)=c}{x\parallel y \overset c \longrightarrow x'\parallel y'}
+$$
+
+##### Encapsulation
+
+Something with a $\partial_H(x)$, causing that some actions are not allowed a
+
+#### Example
+
+> Consider processes
+>
+> $A = runA.give.1$ and $B = take.runB.1$.
+>
+> We want to say that there is communication between the $give$ and $take$ actions.
+> $\gamma(give, take) = \gamma(take, give) = pass$ (and undefined for the rest). And let $H = \{give, take\}$.
+>
+> We want to compute $A \parallel B$ and $\partial_H(a \parallel b)$.
+>
+> 
+
+## Lecture 11 - Parallelism
+
+### Basic Communication Process - BCP
+
+#### Summary
+
+So now we have the new *parallel composition* operator $\parallel$. Furthermore, we have introduced a communication function $\gamma$ where only if $\gamma(a, b) = c$ then we can execute the command.
+
+Furthermore, we can enforce that a send or receive at the same time with the *encapsulation*, called $\delta _H (x)$, where $H$ typically consists of the sends and receives. It filters out transitions you don't want to happen individually.
+
+#### Axioms
+
+-----
+
+**Theorem**
+
+There does not exist a direct finite ground-complete axiomatisation of the algebra associated with $BSP(A)$ extended with $\parallel$.
+
+-----
+
+The problem with proving this is that there does not exist a distribution over $+$, so we cannot prove it by reducing it to e.g. $BSP(A)$.
+
+For the ground-complete axiomatisation, **auxiliary operators** have been added:
+
+- **Left-merge:** $p { \Large _\stackrel {\parallel \ } - }q$ executes $p$ and $q$ in parallel, but the first execution step must come to p.
+- **Communication-merge:** $p\ |\ q$ executes $p$ and $q$ in parallel, but the first execution stup must be a *sync step* from $p$ and $q$.
+
+We can then add fairly straightforward axioms for the *left-merge*, as it only adds one new rule, as there is no termination behaviour here.
+
+Similarly, we can have axioms for the *communication-merge*.
+
+Finally, we axiomitize encapsulation. Some axioms in particular are:
+
+- $\delta_H(a.x) = 0$ if $a \in H$
+- $\delta_H(a.x) = a.x$ if $a \notin H$.
+
+There are also other axioms which are there for convenience, containing $|, \parallel, +, (a.\_), \delta_H$.
+
+#### Results
+
+Furthermore, we know the following characteristics from $BCP$:
+
+1. Bisimilarity is a **congruence** on its algebra.
+2. $BCP(A,\gamma)$ is **sound** for the algebra modulo bisimilarity.
+3. **Elimination:** for every closed $BSP(A,\gamma)$-term $p$ there exists a closed $BCP(A)$-term $q$ such that $BCP(A, \gamma)\vdash p=q$.
+4. $BCP(A,\gamma)$ is **ground-complete** for the algebra modulo bisimilarity.
+
+Finally, we know the following theorem of an $n$-fold parallel composition.
+
+#### No communication
+
+If we have no communication at all, $\gamma = \emptyset$, then we may add the following **Free Merge Axiom**:
+$$
+x \ | \ y + 1 = 1
+$$
+
+#### Buffer example
+
+We can create a **one-place buffer** that can accept a single data element $d \in D$ and then has to output it before accepting another one.
+
+Similarly, we can create a **two-place buffer** where for each data element we add an extra equation. But we can also build a two-place buffer by placing two one-place buffer in parallel.
+
+A kind of intuitive proof that these are the same is as follows:
+
+![IMG_20170606_143108](/IMG_20170606_143108.jpg)
+
+![IMG_20170606_145540](/IMG_20170606_145540.jpg)
+
+We know have a specification of the process of our one-bit buffer.
+When we compare this to the two-bit specification, we cannot conclude that they're the same or bisimilar, as there are intermediate communication actions. Can we *hide* the internal communication and then show that they are identical? Can we *abstract* from the communication?
+
+##### Skip operator
+
+We'll introduce an extra operator **skip** $\epsilon_l(x)$, where $l \subseteq A$ is a subset of axioms. These also have some corresponding rules. The idea is:
+
+- Epsilon to successful termination is $1$, $\epsilon_l(0) = 0$.
+- Epsilon skips the action - $\epsilon_l(a.x) = \epsilon_l(x)$ if $a \in I$.
+- Epsilon doesn't skips the action - $\epsilon_l(a.x) = a.\epsilon_l(x)$ if $a \notin I$.
+
+With this help we can proof equality of $\epsilon_l(\delta_H(Buf_{il} \parallel Buf_{lo})) = Buf_2$.
+
+### Abstraction
+
+#### A new way of abstracting
+
+With the $\epsilon_l$ operator we can *abstract* from internal activities. Is it always suitable? Nope. Consider:
+$$
+\epsilon_{\{b\}} (a.1 + b.0) = a.1 + 0 = a.1
+$$
+This results in removing the deadlock that was inside the process. You cannot see the $b.\_$ happen, but it can happen. 
+
+That's why we'll do abstraction differently with $\tau_l(x)$. This operator follows slightly different rules, as when we abstract we change the action $a \in I$ to the action $\tau$.
+
+Furthermore, we need to do something extras, as we will have some troubles with equality when we have a $\tau$ behaviour: $\tau . \tau . a \neq \tau . a$ or what about $\tau.b + a \overset ? = b + a$?T his is done by the so-called **Branching bisimilarity**.
+
+We denote the reflexive-transitive closure of $\overset \tau \longrightarrow $, also known as $\overset \tau \longrightarrow ^*$ by $\twoheadrightarrow$.
+If $s \overset a \longrightarrow t$  ||  ($a=\tau$ && $s=t$), then we write $s \overset{(a)} \longrightarrow t$.
+
+Here is the definition of branching bisimulation $\bis_b$:
+
+1.  If $s \overset a \longrightarrow s'$ for some $a \in L$ and $s' \in S$,
+    Then $\exists t', t'' \in S$ such that $t \twoheadrightarrow t'' \overset{(a)} \longrightarrow t'$, where $s\ R \ t''$ and $s' \ R \ t'$. 
+2.  Vice versa.
+3.  For termination: if $s$ wants to terminate, then there exists a $t'$ such that $t\twoheadrightarrow t'$, $t' \downarrow$ and $s\ R \ t'$
+4.  Vice versa.
+
+An advantage of using *branching bisimilarity* is that in a way that keeps the choice points, as well as being a strong notion of bisimilarity. 
+
+Branching bisimilarity is an *equivalence* that is *compatible* with the operations of the algebra. However, we do not have a *congruence*, i.e. if we have multiple terms that are branching bisimilar, then their $+$ might not be bisimilar.
+Recall: congruence on an algebra is an equivalence that is compatible with the operations of the algebra.
+
+Note: if you have two transition systems which are branching bisimilar, and one of them does not contain any taus, then if you remove the taus from the other transition system then it should result in a bisimilarity relation.
+
+Here's an example of the cases:
+
+![tau-abstraction-examples](/tau-abstraction-examples.jpg)
+
+## Lecture 12 - 
+
+### Branching Bisimilarity examples
+
+8.2.1 is not branching bisimilar, nor rooted branching bisimilar.
+8.2.2a is branching bisimilar and rooted branching bisimilar.
+8.2.2b is branching bisimilar as well as rooting bisimilar.
+8.2.2c is branching bisimilar.
+Notice that the $\tau$ step does *not* make a choice. It only increases the options. If it would decrease the options by making a choice then it would not be bisimilar.
+
+8.3.2: 
+$$
+\begin{align*}
+BSP_\tau(A) \vdash a.\tau.x 
+&= a.x \\
+&= a(\tau x + 0) & [A6]\\
+&= a(\tau(x+0) + 0) & [A6] \\
+&= a(\tau(0+x)+0) & [A1] \\
+&= a(0+x) & [B] \\
+&= a.x & [A1,A6]
+\end{align*}
+$$
+8.3.3:
+$$
+\begin{align*}
+BSP_\tau(A) \vdash a.(\tau.x + x) 
+&= a(\tau(x+0) + x) & [A6] \\
+&= a(x+0) & [B] \\
+&= a.x & [A6]
+\end{align*}
+$$
+8.3.1:
+$$
+\begin{align*}
+BSP_\tau(A) \vdash  a.\tau(\tau.b.1 + \tau.\tau.b.1) 
+&= a.\tau (\tau.\tau.b.1 + \tau.b.1) & [A1] \\
+&= a.\tau(\tau.b.1) &[8.3.3] \\
+&= a.\tau.b.1 & [8.3.2] \\
+&= a.\tau.(\tau.b.1 + b.1) & [8.3.3]
+\end{align*}
+$$
+
+
+### Rooting branching bisimilar
+
+Still, we want branching bisimilarity to be a congruence. How do we fix this? Well, with **rooted branching bisimulation**.
+
+A branching bisimulation $R$ satisfies the **root condition** such that $s\ R\ t$ and:
+
+1. If $s \transition a s'$ for some $a \in L$ and $s' \in S$ (Notice that $\tau \in L$.)
+   Then $\exists t'$ such that $t \transition a t'$ and $s' \ R\ t'$.
+2. Vice versa.
+3. $s\downarrow \implies t \downarrow$
+4. Vice versa.
+
+We denote this as $s \bis_{rb} t$.
+We just add one more axiom to $BSP(A)$ to get a sound + ground-complete axiomatisation of $\mathbb P(BSP_\tau(A)) _{^\setminus \bis_{rb}}$. 
+$$
+a.(\tau.(x+y) + x) = a(x.y)
+$$
+Notice that this $a$ can also be a $\tau$ itself!
+
+### TCP
+
+Finally, we can have a new theory called $TCP_\tau(a,\gamma)$, combining everything.
+
+(With waaaay to many axioms, like 30-40 or so.)
+
+#### Fixing tau problems
+
+##### Problems with tau encapsulation
+
+So now's the question, can we encapsulate $\tau$? No, this results in a problem:
+$$
+\partial_{\{\tau\}}(a.\tau.1) = a.\partial_{\{\tau\}}(\tau.1) = a.0
+$$
+And by exercise 8.3.2 we know that:
+$$
+\partial_{\{\tau\}}(a.\tau.1)= \partial_{\{\tau\}}(a.1) = a.1
+$$
+
+##### Problem with tau recursion
+
+If $\tau$ is an action,t hen the following recursive specification should be guarded:
+$$
+\{ X = \tau.X\}
+$$
+However, $X \mapsto \tau.1$ is a solution and so is $X \mapsto \tau.0$. Thus we have two distinct solutions, not satisfying RSP anymore. 
+Therefore, we cannot allow $\tau$ to be a guard.
+
+Furthermore, we cannot abstract with $\tau()$ on the right hand side of the equation.
+
+----
+
+**Theorem**
+
+RDP and RSP are valid in $\mathbb P(TCP_{\tau, rec}(A,\gamma))$
+
+----
+
+## Lecture 13 - Proving RSP
+
+### Recursion
+
+We have a set of actions $A$, a theory $T(A)$ (such as $BSP(A)$).
+Then we can have a recursive specification *Rec* over $T(A)$.
+$T(A)_{rec}$ is an extension of $T(A)$ with for every rec. spec. $E$ over $T(A)$ and every $(X = t_X) \in E$.
+
+1. Constant symbol $\mu X.E$
+2. An axiom $\mu X.E  = \mu t_X .E$ 
+   (Where the latter is a shorthand notation of distributing $\mu$ over all the terms.)
+
+For example: a recursive specification over $BSP(A)$ is $X = a.X + 1$.
+
+Also, $\bis$ is a congruence over $BSP(A)$.
+
+#### Recursive Definition Principle
+
+**Recursive Definition Principle (RDP):** Let $\Sigma$ be a signature with an algebra $\mathbb A$. It satisfies RDP if every recursive specification has at least one solution.
+
+----
+
+**Theorem**
+
+$\mathbb P(BSP_{rec}(A)) \vDash RDP$
+
+---
+
+**Proof:** Let $E$ be a rec spec. Define $\kappa$ as the extension of $\iota$ such that, for every recursion variable $X$ in $E$:
+$$
+\kappa(X) = [\mu X.E]_\bis
+$$
+Then we have to show that $\kappa(X) = \kappa(t_X)$, which can be done by showing that these classes are equal modulo bisimilarity which can be done with the TDS.
+
+#### Projection
+
+Define the unary projection operator $\pi_n$, where $n \in \mathbb N$.
+$\pi_n(p)$ executes the behaviour of $p$ up to depth $n$. (Stopping is equivalent to a deadlock, $0$.)
+
+Question, does this hold? $\pi_{n+1}(p) \bis \pi_{n+1}(q) \implies \pi _n(p) \bis \pi _n (q)$.
+
+>  **Proof**
+>
+>  Try 1
+>
+>  *Base case:* $\pi_1(p) \bis \pi_1(q) \implies \pi_0(p) \bis \pi_0(q)$
+>  Trivial, since $\pi_0(p) \bis 0 \bis \pi_0(q)$.
+>
+>  To prove: $\pi_{n+1}(p) \bis \pi_{n+1}(q) \implies \pi _n(p) \bis \pi _n (q)$
+>
+>  We know that there exists a bisimulation relation $R$ such that $\pi_{n+1}(p) \ R \ \pi_{n+1}(q)$.
+>
+>  Then, let us define $R'$. Well, we're then in a bit of a problem, therefore, let us use *co-induction*.
+>
+>  Try 2
+>
+>  We prove that $R = \{(\pi_n(p), \pi_n(q) | p, q \in \mathcal C (BSP+PR)_{rec}), n \in \mathbb N, \pi _{n+1}(p) \bis \pi _{n_1}(q)$.
+>
+>  1. If $\pi_n(p) \overset a \longrightarrow r$, then $ n > 0 $ and $r \equiv \pi _{n-1}(p')$ for some $p'$ such that $p \overset a \longrightarrow p'$.
+>    Hence, since $\pi _{n+1} \bis \pi_{n+1}(q)$ and $\pi _{n+1}(p)  \overset a \longrightarrow \pi _n(p')$, there exists $q'$ such that $q \overset a \longrightarrow q'$ and $\pi _{n+1}(q) \overset a \longrightarrow \pi _n(q')$.
+>    Because of the definition of bisimilarity, we know that $\pi _n(p') \bis \pi_n(q')$. Because of the definition of $R$, we know that $\pi_{n-1}(p) \ R \ \pi_{n-1}(q)$ as we just apply the definition for $n := n-1$.
+>  2. Vice versa
+>  3. If $\pi_n(p) \downarrow$ then $p \downarrow$, so $\pi_{n+1}(p) \downarrow$ therefore $\pi_{n+1}(q) \downarrow$, thus $\pi_n(q) \downarrow$.
+>  4. Vice versa.
+
+There are also some axioms with projections, but these are relatively forward. The only one that is interesting is: $\pi _0(1) = 1$.
+
+#### Approximation Induction Principle (AIP)
+
+Suppose that we have algebra $\mathbb A$ and projection operators $\pi_n (n \in \mathbb N)$. This algebra satisfies AIP if, for any terms $s$ and $t$, $\mathbb A \vDash \pi _n(s) = \pi _n (t)$ for all $n \in \mathbb N$, then $\mathbb A \vDash s = t$.
+
+Basically, if all finite projections of $s$ and $t$ are equal to each other for every possible $n$, then these terms are equal to one another.
+
+However, this doesn't hold in our term model $\mathbb P((BSP + PR)_{rec}(a))_{^/\bis}$, because of lack of bisimilarity! See the following example.s
+
+> "But... There is a big but[t]" - Bas Luttik, 2017
+
+Consider the recursive specification:
+$$
+\{ X_n = a^n.0 + X_{n+1}\ |\ n \in \mathbb N \} \cup \{ Y = a.Y \}
+$$
+Then $X_0 = \sum_{i=0}^n a^i.0 + X_{n+1}$ for all $n \in \mathbb N$
+Therefore, by applying $A3$, $A1$ and $A2$, we can show that $X_0 = X_0 + a^n.0$.
+Then
+$$
+\pi_n(X_0+Y) = \pi_n(X_0) + \pi_n(Y) = \pi_n(X_0) + a^n.0 = \pi_n(X_0) + \pi_n(a^n.0) = \pi_n(X_0 + a^n.0) = \pi_n(X_0)
+$$
+(Although we need an induction for the second-to-final step.)
+
+However, when we draw the transition systems of $X_0 + Y$ and $X_0$, then these are not bisimilar!
+
+##### Restriction to AIP
+
+We denote that a term $s$ is **finitely branching** if $\forall s'$ reachable from $s$ the set $\{ s'' \ | \ \exists a \in A: s' \overset a \longrightarrow s'' \}$ is finite.
+
+When we restrict AIP to only terms that are finitely branching, then we call it $AIP^-$. We know that AIP- is valid in our term algebra.
+
+#### Head normal form
+
+The set of **head normal forms** for $T(A)$ 
+A head normal form can be written as a sum of prefixes. From a head normal form, we know that it's finitely branching.
+
+Furthermore, we can prove that in our term model, if a term $s$ is guarded, then it's in head normal form and therefore is finitely branching.
+
+#### Recursive Specification Principle
+
+*Reminder:* Let $\Sigma$ be a signature, then its algebra $\mathbb A$ satisfies the RSP principle if every *guarded* recursive specification $E$ has at most one solution.
+
+---
+
+**Theorem - Projection Theorem**
+
+Suppose we have $s$ and $t$ satisfying the solution $X$ in $E$ it holds that $\pi_n(s) = \pi_n(t)$ for all $n \in \mathbb N$.
+
+---
+
+*Corollary:* $\mathbb P((BSP + PR)_{rec}(a))_{^/\bis}$ satisfies RSP.
+
+**Proof:** We can show that since $\pi_n(s) = \pi_n(t)$, we know that $s \bis t$ by $AIP^-$.
+
+### Bags and Queues
+
+#### Bags
+
+Consider the behaviour of a bag. This is a multiset over which every element, of say $D$, can be  any $n$ number of times in the bag.
+
+A bag is not regular (aka infinitely many distinct non-bisimilar states), hence not finitely definable in $BSP(A)$.
+
+However, this is finitely definable (with 1 line) in $BCP(A, \emptyset)$, aka with parallelism, but not finitely definable in $TSP(A)$.
+
+##### TCP vs BCP
+
+**Question:** Is every finitely definable $TSP(A)$ behaviour also finitely definable over $BCP(A,\gamma)$.
+*Conjecture:* No!
+
+#### Queue
+
+With both sequential composition and parallel composition together, we can define a FIFO queue with finitely many recursive specification rules.
+
+However, this is not finitely definable in $TCP(A)$ and $BCP(A, \gamma)$.
+
+## Lecture 14 - Random Exercises
+
+### Exercise 4.3.5
+
+**Goal:** Proof Lemma 4.3.9
+
+**Lemma 4.3.9:** If $(p+q)+r \bis r$, then $p + r \bis r$ and $q + r \bis r$.
+
+> Proof
+>
+> Let $R$ be a bis. rel. such that $(p+q)+r \ R \ r$
+>
+> Define $R' = \{ (s + t, t) \ | \ (s+q)+t \ R \ t, \forall s, t \in \mathcal C(\text{MPT}(A))\} \cup R \cup \{(t, t) \ | \ \mathcal C(MPT(A))\}$
+>
+> Then, if $s+t \overset a \longrightarrow u$, then either $s \overset a \longrightarrow u$ (case 1) or $t \overset a \longrightarrow u$ (case 2).
+>
+> **Case 1:** If $s \longrightarrow u$, then $(s+q)+t \overset a \longrightarrow u$, so $t \overset a \longrightarrow v$ such that $u \ R \ v$, and hence $u \ R'\ v$.
+> **Case 2:** If $t \overset a \longrightarrow u$, then note that $t \ R \ t'$.
+>
+> Similarly we can create a relation such that $q + r \bis r$, as we know that $(p+q)+r \bis (q+p)+r$.
+
+## Lecture 15 - More random exercises
+
+**Exercise 5.5.6:** Consider the recursive specification $\{X = a.X + b.X \}$. Determine $\pi_n(X)$ for all $n \in \mathbb N$.
+**Solution:** 
+$$
+\begin{align*}
+\pi_0(X) 
+&= \pi_0(a.X + b.X) & [Rec] \\
+&= \pi_0(a.X) + \pi_0(b.X) & [PR 5] \\
+&= 0 + 0 &[PR] \\
+&= 0 & [A6]
+\end{align*}
+$$
+
+$$
+\pi_1(X) = ... = a.0 + b.0
+$$
+
+What about:
+$$
+\pi_n(X) \overset ? = a.\pi_{n-1}(X) + b.\pi_{n-1}(X)
+$$
+However, we want to get rid of $\pi$!
+There are two ways to do so:
+$$
+\pi_n(X) = (a.1 + b.1)^n
+$$
+Or perhaps even inductively:
+Define $p_0, p_1, p_2, \ldots \in \mathcal C(BSP(A))$ with induction on $n$ as follows:
+$$
+\begin{align*}
+p_0 &\equiv 0 \\
+p_{n+1} &= a.p_n + b.p_n
+\end{align*}
+$$
+We can actually confirm that the former equals $p_n$.
+We can proof this with induction.
+
+> Note: we can use the projection to proof that two equations are equal, using $AIP^-$, by:
+>
+> - Proving that all the projections for $n \in \mathbb N$ are equal..
+> - One of the two equations is in Head Normal Form or has a guarded specification / is finitely branching.
+
+**Exercise 6.6.1:** Prove, using $AIP^-$, that any solution of $X = a.X \cdot b.1$ is also a solution of $X = a.X$.
+
+**Solution:** To prove: $\pi_n(X) = \pi_n(Y)$ for all $n \in \mathbb N$.
+Proof by induction on $n \in \mathbb N$.
+If $n=0$, then:
+$$
+\begin{align*}
+\pi_n(X) = \pi_0(X)
+&= \pi(a.X \cdot b.1) \\
+&= 0 \\
+&= \pi_0(a.Y) \\
+&= \pi_0(Y) = \pi_n(Y)
+\end{align*}
+$$
+Welp, induction step is not going that well.
+
+That's why we want to do something different: $\pi_n(X \cdot p) = \pi_n(Y), \forall n \in \mathbb N, \forall p \in \mathcal C(TSP(A))$.
+
+
+
+Since we prove for all $\pi_n(X)$, we know that $\pi_n(X \cdot 1) = \pi_n(Y)$.
+
+**Exercise 6.4.2:** Prove by structural induction that for all closed $TSP(A)$-terms $p$ and $q$ and $n\geq 0$,
+$$
+(TSP + PR)(A) \vdash \pi_n(p \cdot q) = \pi_n(\pi_n(p) \cdot \pi_n(q))
+$$
+**Solution:**
+
+Note that we know that $\pi_n(\pi_n(p)) = \pi_{\min (m, n)}(p)$.
+Furthermore, notice by the elimination theorem for $TSP(A)$ there exists for every $p \in \mathcal C(TSP(A))$ there exists a $p' \in \mathcal C( BSP(A))$ such that $TSP(A) \vdash p = p'$. Therefore, by the elimination theory of $TSP(A)$, if we proof it by structural induction for all closed $BSP(A)$ terms, then it should also hold for $TSP(A)$.
+
+**Base case**: We do induction on the structure of $p$. Furthermore, we know that $n = 0$.
+
+- $p \equiv 0 : \pi_n(p \cdot q) = \pi_n(0) = \pi_n(0 \cdot \pi_n(q)) = \pi_n(\pi_n(0) \cdot \pi_n(q))$
+- $p \equiv 1: \pi_n(p \cdot q) = \pi_0(q) = \pi_n(\pi_n(q)) = \pi_n(1 \cdot \pi_n(q)) = \pi_n(\pi_n(1) \cdot \pi_n(q))$
+- $p \equiv a.p'$: $\pi_n(p \cdot q) \equiv \pi_n(a.p' \cdot q) = \pi_n(a.(p' \cdot q)) = 0 = \pi_n(0) = \pi_n(0\cdot\pi_0(q) = \pi_0(\pi_( a.p') \cdot \pi_n(q) = \pi_n(\pi_n(p) \cdot \pi_n(q))$
+- For this, we need to formulate for appropriate IH.
+  $p = p_1 + p_2:$ $\pi(p\cdot q) \equiv \pi_n ((p_1 + p_2) \cdot q) = \pi_0(p_1 \cdot q) + \pi_0(p_2 \cdot q) \overset {IH} = \pi_0(\pi_0(p_1) \cdot \pi_0(q)) + \pi_0(\pi_0(p_2) \cdot \pi_0(q))$
+  $ = \pi(\pi(p_1) \cdot \pi_0(q) + \pi_0(p_2) \cdot \pi_0(q)) = \pi_0((\pi_0(p_1) + \pi_0(p_1) )\cdot \pi_0(q))=\pi_n(\pi_n(p) \cdot \pi_n(q))$
+
+**Induction step:** Let $n \in \mathbb N$. We want to proof it holds for $n+1$.
+
+**Exercise 7.6.9:** The process $!p$ denotes the *replication* of $p$, denoting the process term  $p \parallel p \parallel p \parallel \cdots$. This cannot be defined by $ X = p \parallel X$, since $X$ is unguarded and has infinitely many solutions.
+However, the equation $X = p { \Large _\stackrel {\parallel \ } - } X + p\ |\ 1$ *can* be defined for the intended purpose.
+
+We want to prove that $!p = p \parallel\ !p$. To do so, we prove that both $!p, !p$ and $!p \parallel p, !p$ denotes solutions to the guarded recursive specification
+$$
+Y = p { \Large _\stackrel {\parallel \ } - } Y + X \\
+X = p { \Large _\stackrel {\parallel \ } - }X + p \ | \ 1
+$$
+
+Here's a proof:
+
+![replication-proof](/replication-proof.jpg)
+
+## Lecture 16 - Yet even more exercises
+
+### Exam questions
+
+**Exam June 2016, question 2:**
+
+1. We want to prove that $\sim_T$ is a congruence. To do so, we need to prove two things: that $\sim_T$ is an equivalence relation and that $\sim_T$ is *compatible* with all operations of $MPT(A)$.
+
+   1. Why is it an equivalence? 
+      (We want it to hold it for all $MPT(A)$ terms, so we declare an arbitrary one and show it holds.)
+      Reflexivity: Let $p \in \mathcal C(MPT(A))$, then clearly $tr(p) = tr(p)$, thus $p \sim_T p$.
+      Symmetry: Similarly to reflexivity.
+      Transitivity: Similar to Symmetry.
+   2. Why is it compatible with $MPT(A)$.
+      Case $a.\_$: Let $p,q \in \mathcal C(MPT(A))$ and suppose that $p \sim_T q$. We need to prove that $a.p \sim_T a.q$.
+      Note that $tr(a.p) = \{a.\sigma\ |\  \sigma \in tr(p)\} \cup \{\epsilon\} =  \{a.\sigma\ |\  \sigma \in tr(q)\} \cup \{\epsilon\} = tr(a.q)$.
+      Thus, we have that $a.p \sim_T a.q$
+      (If we want to answer the question more formally, then we would have to look at the operational semantics, aka TDS, and notice that $a.p$ could only do an $a$ step to $p$, therefore when looking at the definition of trace, then ...)
+      Case $\_+\_$: Is similar to $a.\_$.
+
+2. Note that $a.(b.0 + c.0) \sim_T a.b.0 + a.c.0$.
+   For $tr(a.(b.0 + c.0)) = \{ \epsilon, a, ab, ac \} = tr(a.b.0 + a.c.0)$.
+   However, $a.(b.0 + c.0) \not \bis a.b.0 + a.c.0$,  as when we try to draw the transition system and relate them, then we get some trouble with the relation.
+
+3. Suppose $MPT(A)$ would be a ground-complete axiomatisation for $\mathbb P(MPT(A))_{\sim_T} $, then for all $p, q \in \mathcal C(MPT(A))$ such that $\mathbb P(MPT(A))_{/\sim_T}  \vDash p \sim_T q$ we would have that $MPT(A) \vdash p=q$.
+
+   Now consider the equation $a.(b.0 + c.0) = a.b.0 + a.c.0$. This equation is valid in $\mathbb P(MPT(A))_{/\sim_T}$, thus $MPT(A) \vdash a.(b.0 + c.0) = a.b.0 + a.c.0$.
+
+   Since $MPT(A)$ is sound for the algebra $\mathbb P(MPT(A))_{/\bis}$, it would follow that $a.(b.0 + c.0) \bis a.b.0 + a.c.0$, quod non (see (b)). We have derived a contradiction from the assumption that $MPT(A)$ is a ground-complete axiomatisation for $\mathbb P(MPT(A))_{/\sim_T}$, thus it is not.
+
+**Exam June 2016, question 2:**
+
+1. ​
+   $$
+   \begin{align*}
+   X 
+   &\equiv \delta_H(\mu.B.E \parallel \mu C.E) \\
+   &= \sum_{d \in D} i?d.\underbrace{\delta_H(\mu B_d.E \parallel \mu C.E)}_{X_d} \equiv \sum_{d \in D} i?d.X_d
+   \end{align*}
+   $$
+   Let us now derive $X_d$:
+   $$
+   \begin{align*}
+   X_d 
+   &\equiv \delta_H(\mu B_d.E \parallel \mu C.E) \\
+   &= l !?\perp.\underbrace{\delta_H(\mu B_d.E \parallel \mu C.E)}_{X_d} + l !? d. \underbrace{\delta_h (\mu B_d.E \parallel o!d.\mu C.E)}_{Y_d} = l !? \perp.X_d + l !?d . Y_d
+   \end{align*}
+   $$
+   Now, let's derive $Y_d$:
+   $$
+   \begin{align*}
+   Y_d 
+   &= \delta_h (\mu B_d.E \parallel o!d.\mu C.E) \\
+   &= \sum_{e \in D} i?e.\underbrace{\delta_H(\mu B_e.E \parallel o!d. \mu C.E)}_{Z_{de}} + o!d.\underbrace{\delta_H(\mu.B.E \parallel \mu C.E)}_X = \sum_{e \in D}i?e.Z_{de} + o!d.X\\
+   \end{align*}
+   $$
+   Let us now continue with $Z_{de}$:
+   $$
+   \begin{align*}
+   Z_{de}
+   &= \delta_H(\mu B_e.E \parallel p!d .\mu C.E) \\
+   &= o!d. \underbrace{\delta_H(\mu B_e.E \parallel \mu C.E)}_{X_e} = o!d.X_e
+   \end{align*}
+   $$
+   Thus, we have a recursive specification that we can write down.
+
+   Look at the terms at the start of each derivation of the equation. We can call them $p, p_d, q_d$ and $r_{de}$ respectively. In the above derivation we have established that $p, p_d (d \in D), q_d (d \in d)$, and $r_{de} (d.e \in D)$ denotes a solution for $F$.
+   Since $X, X_d (d \in D), Y_d$, and $Z_{de}$ are also a solution of this recursive specification, it follows by RSP that these solutions must be the same, as there can only be one solution. Therefore we have that $p = X$. 
+
+2. The idea here is to draw the transition system of $\tau_I(\mu X.E)$, since we proved in the first exercise that $\mu X.E$ is the same as $\delta_H(\mu B.E \parallel \mu C.E)$.
+   Then we draw the transition system of $\mu B.G$ and give a relation $R$ such that these are rooting branching bisimilar.
+
+**Question 1 - Exam 2015:**
+
+1.  
+   1. Prove the first equation using only axioms.
+   2. Prove via structural induction. **Tip:** Look at elimination theorem in the book. 
+      It's the same as $BCP_\tau$.
+2.  
+   1. Use proof trees for this.
+   2. We've done this one before in the lectures.
+   3. Identify an infinite subset of terms and argue that these states are not pairwise bisimilar. 
+      Joost: ​:zzz:​
+
+
