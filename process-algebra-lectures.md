@@ -1271,7 +1271,7 @@ However, this is not finitely definable in $TCP(A)$ and $BCP(A, \gamma)$.
 >
 > Then, if $s+t \overset a \longrightarrow u$, then either $s \overset a \longrightarrow u$ (case 1) or $t \overset a \longrightarrow u$ (case 2).
 >
-> **Case 1:** If $s \longrightarrow u$, then $(s+q)+t \overset a \longrightarrow u$, so $t \overset a \longrightarrow v$ such that $u \ R \ v$, and hence $u \ R'\ v$.
+> **Case 1:** If $s \overset a\longrightarrow u$, then $(s+q)+t \overset a \longrightarrow u$, so $t \overset a \longrightarrow v$ such that $u \ R \ v$, and hence $u \ R'\ v$.
 > **Case 2:** If $t \overset a \longrightarrow u$, then note that $t \ R \ t'$.
 >
 > Similarly we can create a relation such that $q + r \bis r$, as we know that $(p+q)+r \bis (q+p)+r$.
