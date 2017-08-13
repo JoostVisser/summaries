@@ -60,7 +60,7 @@ Goal of equational theory: find which terms over $\Sigma$ of this theory are con
 #### Derivability
 
 How do we derive other equations from our current set of equations? There are a standard set of proof rules that help us with this:
-Equation $s=t$ is derivable from theory $t$, denoted as $T \vdash s=t$, iff it follows from the following rules:
+Equation $s=t$ is derivable from theory $T$, denoted as $T \vdash s=t$, iff it follows from the following rules:
 
 1. **Axiom rule:** For any equation $s=t \in E \implies T \vdash s=t$.
    I.e. all rules in $E$ are already derived.
@@ -73,7 +73,7 @@ Equation $s=t$ is derivable from theory $t$, denoted as $T \vdash s=t$, iff it f
 5. **Transitivity:** For any terms $s, t, u$: $T \vdash s=t \cup T \vdash t=u \implies T \vdash s=u$
    I.e. transitivity: equality holds over multiple terms.
 6. **Context rule:** For any $n$-ary function symbol $f$, we have that:
-   $T \vdash t_i = s \implies T\vdash f(t_1, \ldots, t_n = f(t_1, \ldots, t_{i-1}, s, t_{i+1}, \ldots, t_n)$
+   $T \vdash t_i = s \implies T\vdash f(t_1, \ldots, t_n) = f(t_1, \ldots, t_{i-1}, s, t_{i+1}, \ldots, t_n)$
    I.e. we can put a function around the left and r.h.s. putting $s$ in the place of $t_i$.
 
 With these rules, we can derive different equations via deviation from the axioms.
@@ -188,7 +188,7 @@ Example of the $\Sigma_1$ signature. Interpretation $\iota_1$ is:
 - $\a \mapsto +$
 - $\m \mapsto \times$
 
-We can for example give another interpretation $\iota_2$ to these symbols, where $\a \mapsto \times$ and $\m \mapsto +$.y1
+We can for example give another interpretation $\iota_2$ to these symbols, where $\a \mapsto \times$ and $\m \mapsto +$.
 
 What is the difference between all those symbols of the *signature* and the real constants and functions from the *algebra*? 
 
@@ -334,7 +334,7 @@ Axioms A1, A2 and A3 are often referred to as *mutativity*, *associativity* and 
 
 > Example of proofs in a process theory:
 >
-> To proof: $a.x + (b.y + a.x) = a.x$
+> To proof: $a.x + (b.y + a.x) = a.x + b.y$
 >
 > Proof: $MPT(A) \vdash a.x + (b.y + a.x) = a.x + (a.x + b.y) = (a.x + a.x) + b.y) = a.x + b.y$
 

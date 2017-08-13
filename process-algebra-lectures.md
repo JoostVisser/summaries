@@ -235,7 +235,7 @@ To show that it is valid / soundness in $\mathbb P(MPT(A)) /_\bis$ we should pro
 
 How to proof that an axiom is ground-complete?
 
-An algebra $\mathbb A$ is *ground-complete* for the algebra ... if ... $\vDash p=q \implies MPT(A) \vdash p=q$.
+An algebra $\mathbb A$ is *ground-complete* for the algebra ... if $\mathbb P(MPT(A))\vDash p=q \implies MPT(A) \vdash p=q$.
 
 After some notational stuff, we have to show that $p \bis q \implies p = q$.
 Then again, how would you proof that $p=q$? We should apply the axioms.
@@ -452,7 +452,7 @@ Let $E$ be a recursive specification over $BSP(A)$ and $V_R$.
 
 **Term algebra** for $BSP(A) + E$ is the algebra:
 $$
-\mathbb P(BSP(A) + E) = (\C(BSP(A) + E), +, (a.)_{a \in A}, 0, 1, (X)_{X \in V_R}
+\mathbb P(BSP(A) + E) = (\C(BSP(A) + E), +, (a.)_{a \in A}, 0, 1, (X)_{X \in V_R})
 $$
 
 ---
@@ -566,7 +566,7 @@ Our first goal is to exclude behaviour that are trivial and result in many solut
 
 An occurrence of a recursion variable $X$ in a closed term $s$ is **guarded** if it occurs in the scope of a prefix.
 
-- $\a.X$ $\leftarrow$ $X$ is guarded
+- $a.X$ $\leftarrow$ $X$ is guarded
 - $Y + b.X$ $\leftarrow$ $X$ is guarded, $Y$ is not guarded.
 
 A *term* $s$ is **completely guarded** if all its terms all guarded.
@@ -658,7 +658,7 @@ Can we proof that $\mu X .E = \mu Y . F$? Yes, we can!
 
 > **Proof**
 >
-> We proof this by defining an infinitely guarded specification $\{ Z_i = aZ_{i+1} | i \in \mathbb N\}$. We will find two different solutions that hold for this specification; one containing $X$ and the other one containing $Y$. Finally, as RSP can only have one solution at most, we will conclude that $X = Y$. 
+> We proof this by defining an infinitely guarded specification $\{ Z_i = aZ_{i+1}\ |\ i \in \mathbb N\}$. We will find two different solutions that hold for this specification; one containing $X$ and the other one containing $Y$. Finally, as RSP can only have one solution at most, we will conclude that $X = Y$. 
 >
 > ![equality-rsp](/equality-rsp.jpg)
 >
@@ -785,7 +785,7 @@ Regular transition system is expressible up to bisimilarity in $RSP_\texttt{rec}
 >
 > Find two non-bisimilar transition systems that are both solutions of the unguarded recursive equation $X = X \cdot a.1 + X \cdot b.1$.
 >
-> Consider the solution $X \mapsto 1$. Then it should hold that the transition system 1 should be bisimilar to $1 \cdot a.1 + 1 \cdot b.1$.
+> Consider the solution $X \mapsto 1$. Then it should hold that the transition system 1 should be bisimilar to $1 \cdot a.1 + 1 \cdot b.1$, quod non.
 >
 > Consider the solution $X \mapsto 0$, Then it should hold that $0$ and $0\cdot a.1 + 0 \cdot b.1$, which holds.
 > Similarly, consider the solution $X \mapsto a.b.0$. Then $a.b.0$ is also bisimilar to $(a.b.0) \cdot a.1 + (a.b.0) \cdot b.1$
@@ -833,7 +833,7 @@ However, in TSP(A) it's possible to finitely define infinite-state behaviours (w
 >
 > Consider the recursive specification $\{ X = X \cdot a.1 + a.1 \}$.
 >
-> One solution would be $\{ X_n = a^{n+1} + X_{n=1} \ | \ i \in \mathbb N$, but this is the same solution, we want a different solution.
+> One solution would be $\{ X_n = a^{n+1} + X_{n+1} \ | \ i \in \mathbb N\}$, but this is the same solution, we want a different solution.
 >
 > How about the following recursive specification, is this a solution:
 > $$
@@ -858,7 +858,7 @@ Consider the following process terms:
   - We can either execute an $a$ step or a $c$ step.
   - $a.b.1 \parallel c.1 \overset a \longrightarrow b.1 \parallel c.1 \overset c \longrightarrow (b.1 \parallel 1)\downarrow$
 
-**Assumption:** In our theory, we can execute either the left side or the right side, but not both side at the same time. Therefore, we assume that each action is *atomic*.
+**Assumption:** In our theory, we can execute either the left side or the right side, but not both sides at the same time. Therefore, we assume that each action is *atomic*.
 
 #### Operational rules
 
@@ -883,7 +883,7 @@ $$
 
 ##### Encapsulation
 
-Something with a $\partial_H(x)$, causing that some actions are not allowed a
+However, what if we *only* want to perform this communication action and not each action separate. That's where we have the **encapsulation**, $\partial_H(x)$, causing that all actions in $H$ are not allowed to execute. Very useful if you have an action $a$, an action $b$ and $\gamma(a, b) = c$, but you only want to let them execute at the same time. Then we can state that $H = \{a, b\}$.
 
 #### Example
 
@@ -894,9 +894,8 @@ Something with a $\partial_H(x)$, causing that some actions are not allowed a
 > We want to say that there is communication between the $give$ and $take$ actions.
 > $\gamma(give, take) = \gamma(take, give) = pass$ (and undefined for the rest). And let $H = \{give, take\}$.
 >
-> We want to compute $A \parallel B$ and $\partial_H(a \parallel b)$.
+> We want to compute $A \parallel B$ and $\partial_H(A \parallel B)$.
 >
-> 
 
 ## Lecture 11 - Parallelism
 
@@ -991,7 +990,7 @@ This results in removing the deadlock that was inside the process. You cannot se
 
 That's why we'll do abstraction differently with $\tau_l(x)$. This operator follows slightly different rules, as when we abstract we change the action $a \in I$ to the action $\tau$.
 
-Furthermore, we need to do something extras, as we will have some troubles with equality when we have a $\tau$ behaviour: $\tau . \tau . a \neq \tau . a$ or what about $\tau.b + a \overset ? = b + a$?T his is done by the so-called **Branching bisimilarity**.
+Furthermore, we need to do something extras, as we will have some troubles with equality when we have a $\tau$ behaviour: $\tau . \tau . a \neq \tau . a$ or what about $\tau.b + a \overset ? = b + a$? This is done by the so-called **Branching bisimilarity**.
 
 We denote the reflexive-transitive closure of $\overset \tau \longrightarrow $, also known as $\overset \tau \longrightarrow ^*$ by $\twoheadrightarrow$.
 If $s \overset a \longrightarrow t$  ||  ($a=\tau$ && $s=t$), then we write $s \overset{(a)} \longrightarrow t$.
@@ -1081,7 +1080,7 @@ Notice that this $a$ can also be a $\tau$ itself!
 
 Finally, we can have a new theory called $TCP_\tau(a,\gamma)$, combining everything.
 
-(With waaaay to many axioms, like 30-40 or so.)
+(With waaaay too many axioms, like 30-40 or so.)
 
 #### Fixing tau problems
 
@@ -1171,7 +1170,7 @@ Question, does this hold? $\pi_{n+1}(p) \bis \pi_{n+1}(q) \implies \pi _n(p) \bi
 >
 >  Try 2
 >
->  We prove that $R = \{(\pi_n(p), \pi_n(q) | p, q \in \mathcal C (BSP+PR)_{rec}), n \in \mathbb N, \pi _{n+1}(p) \bis \pi _{n_1}(q)$.
+>  We prove that $R = \{(\pi_n(p), \pi_n(q)\ |\ p, q \in \mathcal C (BSP+PR)_{rec}), n \in \mathbb N, \pi _{n+1}(p) \bis \pi _{n_1}(q)\}$.
 >
 >  1. If $\pi_n(p) \overset a \longrightarrow r$, then $ n > 0 $ and $r \equiv \pi _{n-1}(p')$ for some $p'$ such that $p \overset a \longrightarrow p'$.
 >    Hence, since $\pi _{n+1} \bis \pi_{n+1}(q)$ and $\pi _{n+1}(p)  \overset a \longrightarrow \pi _n(p')$, there exists $q'$ such that $q \overset a \longrightarrow q'$ and $\pi _{n+1}(q) \overset a \longrightarrow \pi _n(q')$.
@@ -1188,7 +1187,7 @@ Suppose that we have algebra $\mathbb A$ and projection operators $\pi_n (n \in 
 
 Basically, if all finite projections of $s$ and $t$ are equal to each other for every possible $n$, then these terms are equal to one another.
 
-However, this doesn't hold in our term model $\mathbb P((BSP + PR)_{rec}(a))_{^/\bis}$, because of lack of bisimilarity! See the following example.s
+However, this doesn't hold in our term model $\mathbb P((BSP + PR)_{rec}(A))_{^/\bis}$, because of lack of bisimilarity! See the following example.s
 
 > "But... There is a big but[t]" - Bas Luttik, 2017
 

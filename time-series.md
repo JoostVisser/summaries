@@ -229,7 +229,7 @@ How does differentiation work? We look at the slope between $x$ and $x+\delta$, 
 - Don't go too far in differencing, as it might be too complicated (5 times is too much).
 
 Fun fact: we can go in the reverse direction via integration! 
-So we can get a prediction by integrating. However, the more we integrate, the more noise we have, so we increase the uncertainty.
+So we can get a prediction by integrating. However, the more we integrate, the more noise we have, so we increase the uncertainty.\
 
 ### Correcting the seasonality (Seasonal decomposition)
 
@@ -969,7 +969,7 @@ $X_t = Z_t + 0.1 Z_{t-1}$
   $$
   \begin{align*}
   Cov(X_t, X_{t+k}) 
-  &= \mathbb E(X_t \cdot X_{t+k}) - \overbrace{\mathbb E(X_t) \cdot E(X_{t+k})}^{0} \\
+  &= \mathbb E(X_t \cdot X_{t+k}) - \overbrace{\mathbb E(X_t) \cdot \mathbb E(X_{t+k})}^{0} \\
   &= \mathbb E[(Z_t + 0.1 Z_{t-1})(Z_{t+k} + 0.1 Z_{t+k-1})] \\
   &= \mathbb E [
   \underbrace{Z_t Z_{t+k}}_{\begin{aligned}K \neq 0 &\rightarrow 0 \\ K = 0 &\rightarrow \mathbb V(Z_t)\end{aligned}} 
@@ -1152,7 +1152,7 @@ Performing it with the `Arima` command in R results in the following coefficient
 - $\beta_2 = 0.45$
 - $\beta_3 = 0.19$
 
-Futhermore, we get the following values: $AIC$ is the Aki iki index that has some in-built penalty for more complicated formulas.
+Futhermore, we get the following values: $AIC$ is the Akeike index that has some in-built penalty for more complicated formulas.
 
 Finally, with the forecast, we notice that the confidence band go into the negative numbers, so we can comment on this model.
 
@@ -1181,7 +1181,7 @@ Still some significance in the ACF of residuals? Then we can use the patterns wh
 In total, we can gather all AIC values and have *multiple* good candidate models that we can use.
 
 > There are automated tests, but it only focusses on a single value, namely AIC for example.
-> It doesn't look at the forecast, not at the residuals.
+> It doesn't look at the forecast, nor at the residuals.
 >
 > - There is not a "single best model"
 > - Don't forget to take into account to context.
@@ -1350,7 +1350,7 @@ $$
 
 Want $X_{t+1}$? Then we just repeat this approach, with our prediction of $X_t$! 
 
-> Not restricted to economic series, but if you sample a variable on a regular frequency, then you can also apply Time Series!
+> Not restricted to economic series, but if you sample a variable on a regular frequency, then you can also apply Time Series!Table 4
 
 ### Multivariate time-series
 
@@ -1398,10 +1398,6 @@ Suppose we have many different variables for marketing, such as Catalogs mailed,
 Can we predict one series with the help of the others? $\rightarrow$ Causality
 
 We will  use $VARMA$ models for this.
-
-
-
-
 
 ### R-code
 
