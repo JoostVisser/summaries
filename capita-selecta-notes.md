@@ -4,6 +4,93 @@
 
 ## Research
 
+#### Preliminaries
+
+- If it doesn't work, install Anaconda1.
+- Install Python 2.7.
+- Install CUDNN.
+
+#### Python files
+
+##### Keras notes
+
+`border_mode = valid`, then you get an output that is smaller than the input because the convolution is only computed where the input and the filter fully overlap.
+
+`border_mode = same`, you get an output that is the "same" size as the input. That means that the filter has to go outside the bounds of the input by "filter size / 2" - the area outside of the input is normally padded with zeros.
+
+##### Class_shape_1.py
+
+
+
+
+
+
+
+### Architecture
+
+Autoencoder: reduction / synthesis of the relevant information.
+Goal: $||x - x'|| << 1$
+
+Has to be very smart to fit it through, say $R^3$.
+
+- Always be an error.
+- Doing regularization. Add noise to the latent representation. Limits capacity to encode anything.
+- Measure as small as distance as possible within the neurons of the auto-encoder so we can store more information. 
+  - Add noise $\rightarrow$ extra width of the channel.
+  - Variance of noise $\rightarrow$ less possible information to store.
+    - Gaussian noise + *Dropout* $\gets$ interesting
+    - If you do noise + dropout, what would be the effect on the capacity on the layer.
+      - Distribute the noise better.
+      - *Sensitivity study on dropout coefficient vs breakdown.*
+  - Reduces overfitting if adding some noice.
+  - Is there a way to measure the capacity of the autoencoder.
+    - You can see how the signal degrade...
+
+Convolutional layer: 
+
+- Filter over the image.
+- Only a layer, does not depend in the input.
+
+Sliding window:
+
+- Algorithm around the neural network with patches.
+- Useful when having dense layers 
+- Much overlapping, calculation repeated. **Super unefficient**.
+
+Reason for dense layer: bring all info into one decision.
+
+**Heatmap** of FCN autoencoder.
+
+MNIST example: 
+
+- 8, 7, 6.
+- First CCP will learn hierarchical features. 
+  - Fine details.
+- Hierarchichaly depends on above.
+
+Autoencoder, fully convolutional, stamps for localization.
+
+Uses stamps to reconstruct images.
+
+- Not put the stamps too close to eachother.
+- There is also a "blank" stamp.
+- Stamps:
+
+Having fixed stamps, can it learn *localization*?
+
+Immediate tasks, how to fix the stamps? 
+
+##### Deep learning meeting notes
+
+Anomaly detection using a Generative model; zero-class learning: idea is to train an autoencoder on zero-class. It uses the following hypothesis / assumption:
+
+- If a new zero-class image appears, then it can reconstruct it.
+- If a class-1 image appears, then it cannot reconstruct the image.
+
+
+
+
+
 
 
 ## Papers
@@ -188,6 +275,10 @@ We compare three different architecture:
 
 
 
+
+
+
+
 ## Recap Neural Networks
 
 ### Stanford Tutorial
@@ -255,7 +346,7 @@ Property of an image: due to spatiality, it has the property of *stationary*. Th
 - More concretely, if we learn a feature somewhere in the image, then we can apply this everywhere in the image.
 
 
-- As an example, suppose we have a $96\times 96$ image and we learn features of patches from $8 \times 8$. This would result in a $89 \times 89$ feature if the *stride* is 1. Suppose we have $100$ features that we want to learn. Now we only have $8 \times 8 \times 100 = 6400$ paramters instead of $1\ 000\ 000$ parameters!
+- As an example, suppose we have a $96\times 96$ image and we learn features of patches from $8 \times 8$. This would result in a $89 \times 89$ feature if the *stride* is 1. Suppose we have $100$ features that we want to learn. Now we only have $8 \times 8 \times 100 = 6400$ parameters instead of $1\ 000\ 000$ parameters!
 
 #### Autoencoders
 

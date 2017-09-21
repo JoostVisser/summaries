@@ -235,5 +235,299 @@ How to compute the continuous Fréchet distance? Consider the problem of the dis
 
 - **Decision problem:** $\delta_F(P,Q) \leq r$.
 - Consider the continuous distance matrix $P$ and $Q$. Via circles we can compute for each point whether these are inside or the outside of the range. If we colour those white and the others red, then we create the **Free-Space diagram**. 
-  - We can look if there is a path from the lower left corner to the upper right corner.
+  - We can look if there is a path from the lower left corner to the upper right corner. This needs to be *continuous* and *monotone*.
+  - $q_1 \leftrightarrow p_1$ and $q_m \leftrightarrow p_n$
 
+
+What if there more than two lines? Well, then we can duplicate such block *for each line*! 
+
+- Suppose $P$ has $k$ line segments and $Q$ has $l$ line segments, then there will be $k \times l$ blocks.
+
+> **Algorithm - Fréchet distance decision problem**
+>
+> 1. Compute free-space diagram in $\O(mn)$ time.
+>
+>    - One cell can be constructed in $\O(1)$ time
+>
+>
+>    - Square and ellipsoid intersect in at most 8 critical points, we only need those points.
+>
+> 2. Compute a monotone path from $(q_1, p_1)$ to $(q_m, p_n)$ in $\O(mn)$ time.
+>
+>    - Idea: find the *earliest reachable point* that can be reached with a monotone path from $(q_1, p_1)$. There are 3 cases:
+>      - All free space on the right side and higher, then indicate 2 points.
+>      - Free space is both higher and lower than current space, then the lowest points should be at least on the same hight.
+>      - Free space is lower than current space, then it's impossible to reach this part.
+
+With the above algorithm, how do we compute the exact Fréchet distance?
+
+- In *practice:* determine $r$ bit by bit via binary search.
+- In *theory*: there are three cases that define the minimum distance of $r$:
+    1. $r$ is minimal with $(q_1, p_1)$ and $(q_m, p_n)$
+       - Constant time
+       2. $r$ is minimal when a new vertical or horizontal passage opens up between two adjacent cells in free space.
+      - $\O(mn)$ events
+        3. $r$ is minimal when a new vertical or horizontal passage opens up between two non-adjacent cells in the free space. (Measure where vertical value of point $t$ .
+      - $\O(m^2n + mn^2)$ possible events. Via parametric search $O(mn \log mn)$.
+
+## Lecture 3 - Simplification
+
+**Observation:** We can simplify many trajectories without losing much information.
+
+- Depends on application, of course.
+
+We want a trajectory with the smallest number of vertices and with error at most $\epsilon$. We cannot use simple line-simplification though, because that makes the constant velocity assumption invalid.
+
+- Various error measurements. We'll start with *curve simplification*.
+
+There are three algorithms we will discuss for **simplifying polygonal curves**.
+
+### Curve simplification
+
+#### Ramer-Douglas-Peucker
+
+**Input:** polygonial path $p=\langle p_1, \dots, p_n\rangle $ and threshold $\epsilon$.
+
+> **Algorithm**
+>
+> ```python
+> DP(P, i, j):
+>   Find the vertex v_f farthest from (p_i,p_j)
+>   dist := distance between v_f and p_i, p_j
+>
+>   if dist > epsilon then
+>       DP(P, i, f)
+>       DP(P, f, j)
+>   else
+>       Output v_i, v_j
+> ```
+
+Worst-case complexity: $\O(n^2)$, but can use $\O(n \log n)$ or even $\O(n \log^* n)$ in non-intersecting cases.
+
+Con: does not give a bound on the complexity of the simplificaiton.
+
+#### Imai-Iri
+
+**Input:** polygonial path $p=\langle p_1, \dots, p_n\rangle $ and threshold $\epsilon$.
+
+> **Algorithm**
+>
+> 1. Build a graph G and find all possible shortcuts.
+>    - Check for all points if they are are above the threshold $\epsilon$.
+> 2. Find shortest path using these shortcuts via BFS.
+
+Brute force running time? $\O(n^3)$ as there are $\O(n^2)$ possible shortcuts and $\O(n)$ per shortcut.
+
+- There are improvements for $\O(n^2)$ running time.
+- Idea: test all shortcuts from a single vertex in linear time, by creating circles around the next points and the lines have to go through all the circles.
+  - We're done with a point once we find a line between two circles.
+    - We should check a ray both from $p_i$ to $p_j$ and vice versa! (Because otherwise if a route goes first to the right and then to the left it can skip some points as some disks are intersected by the ray but just one-way.)
+  - Checking if a **ray intersects all disks** can be done efficiently.
+    - The algorithm works by looking at planes, rays and wedges. Each time we wedge, we can reduce $W_j$ and compute the wedge. If the area becomes empty, then we are finished as there are no more rays we can shoot that intersects the rays. 
+- We can't do better than $\Omega(n^2)$. 
+- Pro: output with the *minimum number of edges*.
+
+#### Argarwel et al.
+
+Running time: $\O(n \log n)$.
+Measure: Fréchet distance.
+Output: path has at most the same complexity as a minimum link $(\epsilon / 2)$-simplification.
+
+**Input:** polygonial path $p=\langle p_1, \dots, p_n\rangle $ and threshold $\epsilon$.
+
+Let $\delta(p_ip_j)$ be the Fréchet distance between the line $(p_i, p_j)$ and the subpath $\pi(p_i, p_j)$.
+
+> **Algorithm**
+>
+> Find *any* $j > i$ such that $\delta(p_i, p_j) \leq \epsilon$ and $\delta(p_i, p_{j+1}) > \epsilon$.
+>
+> - Exponential search: Test $p_{i+1}, p_{i+2}, p_{i+4}, p_{i+8}$ until found $p_{i+2^k}$ such that $\delta(p_i, p_{i+2^k}) > \epsilon$.
+> - Binary search: Search for $p_j$ between $p_{i+2^{k-1}}$ and $p_{i+2^k}$ such that $\delta(p_i, p_j) \leq \epsilon$ and $\delta(p_i, p_{j+1}) > \epsilon$.
+>   - This must me the case, because at the exponential search such jump happened.
+
+If we do a lot of searching, then it must be because of a large jump so we perform a large shortcut. This helps with the running time. What's the running time? 
+
+- The searching takes $\O(\log n) + \O(\log n)$ time.
+- After some math, sums up to $\O(n \log n)$.
+
+Prove of the approximation of the simplification is given in the slides. 
+
+#### Adding time
+
+So... how can we add time? 
+
+- Just add a third temporal-dimension and check if the beams go through spacial disks or diamonds.
+
+## Lecture 4 - Segmentation
+
+### What is segmentation?
+
+**Segmentation:** Split into segments that have meaning.
+
+- Different modes of transportation of a puny human.
+
+**Input:** Trajectory with geometric attributes.
+**Criteria:** Bounded variance in speed, curvature, direction, distance, ...
+**Aim:** Partition $T$ into a minimum number of subjtrajectories (*segments*) such that each segment fulfils the criteria.
+
+**Decreasing monotone criteria:** If the criterio holds on a segments, then it holds on any subsegments. 
+
+- Examples: bounded speed, bounded angular range (*heading*).
+
+Note that a greedy algorithm works for any decreasing monotone criteria.
+Designing greedy algorithms: See the slides for more information.
+
+If we have a constant-update criteria which we can check, such as speed, then we can obtain the segments in $\O(n)$ time. 
+
+What if there is no constant update criteria, but we have to check for each $k$ points to see if it a valid segment in $\O(\log k)$ time? Well, first idea might be binary search, but this takes $\O( n^2 \log n)$ time.
+
+**Observation:** *Iterative double & search* is faster, which is an exponential search followed by a binary search. This restricts the search area and results in an overall running time of $\O(n \log n)$.
+
+### How can we use segmentation?
+
+We can search some trajectory with several criteria to look for certain properties, i.e. stopover of geese by looking at *Radius within 30km* + *Within 48h*.
+
+**Observation:** For a combination between decreasing monotone & increasing monotone criteria then we cannot always use a greedy algorithm.
+
+Non-decreasing monotone:
+
+- Minimum time
+- Standard deviation
+
+Solution: **start-stop diagram**.
+
+Given a trajectory $T$ over time interval $I = \{t_0, \ldots, t_\tau\}$and criterion $C$.
+
+The **start-stop diagram** $D$ is the upper diagonal half of the $n \times n$ grid where each point $(i, j)$ is associated to segment $[t_i, t_j]$ with:
+
+- $(i, j)$ is in free space if $C$ holds on $[t_i, t_j]$
+- $(i, j)$ is in forbidden space if $C$ does not hold on $[t_i, t_j]$. 
+- A minimal segmentation of $T$ corresponds to a (min-link) staircase in $D$.
+
+We can solve this by *dynamic penetration*! 
+$$
+L(j) = \min _{\substack{i < j \\ \texttt{with $j$ reachable from $i$}}} (L(i)) + 1
+$$
+Results in a $\O(n^2)$ algorithm. Can we do better?
+
+**Stable criteria:** A criterion is *stable* iff $\sum_{i=0}^n v(i) = \O(n)$ where $v(i) = $ # of changes of validity on segments $[0,i], [1, i], \ldots, [i-1, i]$.
+
+- Increasing monotone and decreasing monotone are *stable criteria*.
+
+- For stable criteria the start-stop diagram can be compressed by applying *run-length encoding*.
+
+- The encoding can be calculated by a a greedy algorithm
+
+  - This is done by two points and finding the staircase.
+
+  1. First we try to extend the segment. 
+  2. Then we try to check if it's a valid segment.
+  3. And we need a *shorten* operations.
+
+  - A balanced binary search tree can be used. $\O(\log n)$ is efficient enough.
+
+- The start-stop diagram of two criteria is their intersection.
+
+How to improve the $\O(n^2)$ time? We want to handle a couple of white cells per block. We can store these blocks in an **augmented binary search tree**.
+
+1. Choose an underlying data structure. (RB-tree)
+2. Determine additional information to maintain. (min-count[x])
+3. Verify that we can maintain additional information for existing data structures.
+   - **Theorem:** if the additional information only depends on left[x] and right[x], then we can augment this in $\O(\log n)$ time.
+
+This algorithm runs in $\O(n \log n)$ time.
+
+### Lecture 5 - Static Map Labelling
+
+
+
+There are various guidelines that have been found after experience with manual map labelling.
+
+- Automatic label placement can be easily modelled as a computational geometry problem, as it just a sum of various features of the guidelines of the readability of the map.
+- We assume that the type of labels are given to us and that we just have to position them. (*Geometric placement*)
+
+**Input:** Set of $n$ points in the place, for each point a label represented by a rectangle. (*Bounding box*)
+**Goal:** There are various different objectives:
+
+- Find a valid[^1] labelling for a maximum size subset of the points such that no two lables intersect. (`MaxNumber`)
+- Find a valid[^1] labelling with all labels such that no two labels intersect + font size is maximized. (`MaxSize`)
+
+#### Part I - Complexity
+
+**Goal:** show that MaxNumber is NP-complete in the 4-slider model.
+**Idea:** We can reduce the 4-slider problem into `Planar 3-SAT`.
+
+**Clause graph:** each clause connects all the variables in terms of edges.
+
+- Each variable is a vertex and each clause is a vertex.
+- The clauses are connected with edges to the vertices of the variables (which are in the middle).
+
+#### Part II - Sliding vs fixed positions
+
+How many more points can be potentially labelled with sliding vs fixed?
+
+For unit-size squares, the 2-slides model somtimes allows $\leq 2 \times \#\text{labels of 4-position model}$.
+
+- Proof is done by intersection of odd and even lines of size slightly bigger than unit-size squares. (Showing *never more than twice*)
+- This is also tight, as wel can show a 2s solution that has twice as many solutions as 4p model.
+
+#### Part III - Approximation Algorithms
+
+Approximation algorith for 4-position:
+
+- Want to grab the maximum subset such that they don't intersect.
+
+
+- In other words:We want the maximum independent set in the *rectangle intersecting graph*.
+  - We're making a node for each label candidate and connect the node if the rectangles intersect. 
+    - Also, for each point, we draw a complete $K_4$ for each node such that only one can be added.
+
+Let's make the problem easier:
+
+- Assume labels have equal height but varying width.
+
+##### Equal height, varying width
+
+Heuristic 1: randomly grab 1 and remove the rest, then do this again.
+
+- Approximation ratio: $\Theta(1/n)$.
+
+Heuristic 2: Choose the shortest label, eliminate the intersecting candidates and repeat.
+
+- Approximation ratio: $\Theta(1/4)$, since any intersection must intersect one of the corner.
+
+Heuristic 3: Greedy, left-to-right placement. [Leftmost right side]
+
+- Approxmation ratio: $\Theta(1/2)$
+  - Everything has to intersect the right two corners. 
+- **Reference point:** lower left corner of label.
+  - Mini-heap to find leftmost candidate
+  - Priority search tree to find all reference points of candidates (*useless candidates*) 
+  - $\O(n \log n)$
+
+(Does not work for varying height.)
+
+In fact, there exists a PTAS such that, for any $k > 1$, a $\frac k {k+1}$-approximation exist in $\O(n \log n + n^{2k-1})$.
+
+Another idea, assuming labels have $1$ height:
+
+- Draw horizontal lines such that
+  - Separation between any two lines $> 1$
+  - Each line intersects at least one rectangle.
+  - Each rectangle is intersected by some line.
+  - This can be done greedy top-down by looking at the first ending which has not been intersected yet. 
+- Compute MIS for the rectangles for each line.
+- Return the max of the MIS of $L_1, L_3, L_5, \cdots$  and MIS of $L_2, L_4, L_6, \cdots$.
+- 1/2-approximation
+
+What, instead of per 1 line, we solve everything per two lines?
+
+- $L_1 \cup L_2, L_2 \cup L_3, L_3 \cup L_4, \cdots$.
+- Note that $L_1 \cup L_2$ and $L_4 \cup L_5$ cannot have intersections, so we only remove every third line.
+  - In the end, take the maximum of the three different cases.
+
+#### Lecture 5 - Footnotes
+
+[^1]: This depends on the model chosen. Are we using only the upper right part? Or perhaps all 4 corners. Or pehaps even a slider model where it can be everywhere above. The former is called 4P, the latter 4S.
+
+### Lecture 6
