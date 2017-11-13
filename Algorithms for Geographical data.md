@@ -437,9 +437,7 @@ How to improve the $\O(n^2)$ time? We want to handle a couple of white cells per
 
 This algorithm runs in $\O(n \log n)$ time.
 
-### Lecture 5 - Static Map Labelling
-
-
+## Lecture 5 - Static Map Labelling
 
 There are various guidelines that have been found after experience with manual map labelling.
 
@@ -530,4 +528,169 @@ What, instead of per 1 line, we solve everything per two lines?
 
 [^1]: This depends on the model chosen. Are we using only the upper right part? Or perhaps all 4 corners. Or pehaps even a slider model where it can be everywhere above. The former is called 4P, the latter 4S.
 
-### Lecture 6
+## Lecture 6- Movement Pattern
+
+**Movement Pattern:** Any pattern in terms of movement.
+
+- Behavioral patterns (fighting, play, leadership)
+- Generic patterns (symmetry, moving cluster, concentration)
+
+**Challenge:** Finding *useful* definiitions, which are algorithmically doable.
+
+**Groups**
+
+Input: Set of trajectories in space & time and we want to track groups.
+There are various different definitions.
+
+- Need some kind of way to express how many you need to call something a group.
+- Suggestion: nearby in space (i.e. smallest circle radius) for the whole time (every time slice).
+  - Flock-y.
+  - If you can place the disk anywhere, then it can be 
+
+**Convoy**
+
+$x,y \in X \iff$ $\epsilon$-disks intersect. 
+Two points are $\epsilon$ connected if there exists a sequence of points such that they are connected.
+
+- Not relaly a super good definition.
+
+**Leadership**
+
+A *leader* should not follow anyone else.
+
+ s followed by at least $m$ other entities. Can be done in a cone. For $n$ entities and $t$ time steps, there exists a running time of $\O(n^2t \log nt)$.
+
+**Popular places**
+
+A region is a popular place if at least $m$ entities visit it. 
+
+**Single File**
+
+Pinguin 2 looks at pinguin 1.
+Pinguin 3 looks at pinguin 2.
+
+And close to each other in time.
+
+Entities $x_1, \ldots, x_m$ are moving in a single file for a given time interval if during this time each entity $x_{j+1}$ is **following behind** entity $x_j$ for $j=1, \ldots, m-1$.
+
+- Huh, following behind?
+  - The idea is that the second pinguin is after a certain amount of time within a certain $\epsilon$ disk distance of the first pinguin. (Between $t_\texttt{min}$ and $t_\texttt{max}$.)
+  - ​
+
+
+
+## Lecture 8 - Schematization
+
+### Cartographic Generalization
+
+Topographic maps show spatial objects (objects in space) **suitable** for a target **scale**.
+
+- Scale? This is the ratio $\frac{\texttt{real size}}{\texttt{map size}}$
+- Suitable? Well, the map has to be legible and readable. (E.g. big roads in Google maps.)
+
+**Generalization:** Deriving a small-scale map from a large scale map.
+
+**Generalization operators:** Different steps in the generalization problem. 
+As an example:
+
+- **Select:** Choose what to show.
+- **Aggregate:** Combine various objects.
+- **Typify:** Change representation of some objects.
+- **Simplify:** Remove certain (unneeded) details.
+- **Exaggerate (enlarge):** Make certain objects larger to make it more readable.
+- **Displace:** Add extra space between lines so it becomes more readable.
+
+### Schematization
+
+Sometimes, for a certain *thematic map*, we don't want to show a map into the exact detail, but we want something way more simplified as there are many uncessecary details.
+
+- *Example:* Railroad map of the Netherlands.
+- Useful for visualization!
+
+**Schematization:** a *stylized, abstract* representation.
+
+- Generally very simplified
+- *Iconic:* few directions of lines, specific curves, ...
+- Some visual resemblance to input.
+
+**Subdivisions** and **networks** are most commonly schematized.
+
+There are various constraints that we can add. For example, *vertex-restricted* vs *non-vertex-restricted*, etc.
+
+#### Network Schematization
+
+*Example:* subway map of London. Real-map vs subway map.
+
+1. Many stations have to aligned horizontally, vertically or diagonally.
+2. Sufficient spacing between different lines.
+3. Connections have at most two bends.
+4. Maximum displacement for stations.
+
+How do we solve this problems? 
+
+Well, there are many *iterative approaches*.
+$\implies$ Solution quality + convergence cannot be guaranteed.
+
+There exists an approach to solve constraints 1+2+3.
+
+> Combinatorial approach:
+>
+> - Replace every connection by one 
+>
+> A **monotone map** is a map where all paths are **x-monotone** (going left to right, not really up and down).
+>
+> A point $p$ is **below** or **above** a path $c$ if:
+>
+> - Consider the vertical **upper** (/ **lower** resp.) ray of $p$. 
+> - If any deformation of $c$ intersects this ray (when not swiping over $p$), then it's below.
+> - A point $p$ can be both and below a path, one of them, or neither above or below.
+>
+> A path $c$ is **above** path $c'$ if any endpoint of $c$ is above $c'$. Or any endpoint of $c'$ is below $c$.
+>
+> **Input:** Given a polygone map $M$.  with paths.
+> **Goal:** Compute a schematic path $M'$ from $M$.
+>
+> *Lemma:* The above-below relation among paths is invariant between equivalent maps.
+>
+> Goal: obtain an order among points.
+>
+> - Is there always an order? $\rightarrow$ No, since we can have two paths of which are both below and abov each other $\rightarrow$ Cycle
+>
+>
+
+We can use a certain definition of **x-monotone** paths for the exercise. Hurray!!
+
+## Lecture 10 - Symbol maps + Flow maps
+
+**Input:** Set of $n$ points with values
+**Output:** Convert values to disks / squares of some size.
+
+One main problem is overlapping disks. There are various ways to solve this.
+
+1. **Face correct drawings**
+   - Bounded + every face appearing in the drawing is *locally correct.*
+   - Can get a problem of a circle being both above and under another circle.
+2. **Physically realizable drawings**
+   - Face correct + for every face of the arrangement of circles, there is a *total order* on the disks, where the orders do not conflict.
+   - Solves the problem with over/underlapping of two disks.
+   - Has a problem with a cyclic overlap.
+3. **Stacking order**
+   - There is a single, **global order**, of the disks from top to bottom.
+
+When is a drawing good?
+
+- Both physically realizable and stacking are nice.
+- **Goals** 
+  1. Maximize the total *perimeter* visible.
+  2. Maximize the least visible parameter 
+- Why perimeter? Two problems, sum gives a problem but also a circle under other circles where we don't know the size of this circle.
+
+#### Necklace maps
+
+Represent data with symbols placed on a *necklace* around the regions.
+
+- Necklace: a closed curve
+- Symbol: usually a circle
+
+We need **Quality Criteria** for our project!
+
